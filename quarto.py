@@ -13,6 +13,10 @@ class QuartoGame:
         else:
             self.board = qutil.decodeBoard(board_encoding)
     
+    def encodeBoard(self):
+        return qutil.encodeBoard(self.board)
+    
+    
     def showBoard(self):
         if self.gui_mode:
             for i in range(4):
