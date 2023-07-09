@@ -1,4 +1,5 @@
 import numpy as np
+import quarto_util as util
 
 '''
 ----------------------
@@ -43,21 +44,3 @@ class QuartoGame:
         #no board encoding passed, therefore clear board
         if board_encoding is None:
             self.board = [[16]*4]*4
-    
-    def encodeBoard(self, board_array):
-        encoding = ""
-        for i in range(4):
-            for j in range(4):
-                num = board_array[i][j]
-                if num <= 9:
-                    encoding += "0"+str(num)
-                else:
-                    encoding += str(num)
-        
-        return encoding
-    
-    def decodeBoard(self, encoding):
-        board_array = [int(encoding[i]+encoding[i+1]) for i in range(0,len(encoding),2)]
-        board_array = np.reshape(board_array, (4,4))
-
-        return board_array
