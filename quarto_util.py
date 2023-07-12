@@ -17,3 +17,10 @@ def decodeBoard(encoding):
     board_array = np.reshape(board_array, (4,4))
 
     return board_array
+
+def get2dCoords(ind):
+    assert ind >= 0 and ind < 16, "Invalid linear index. Should be from 0 - 15 inclusive."
+    row = ind // 4
+    col = ind % 4
+
+    return (row,col)
