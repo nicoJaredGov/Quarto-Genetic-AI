@@ -3,8 +3,14 @@ import quarto_util as qutil
 
 class QuartoGame:
     def __init__(self, gui_mode=True):
-        self.board = np.full((4,4), 16)
+
+        #additional config
         self.gui_mode = gui_mode
+        #game state
+        self.board = np.full((4,4), 16)
+        self.currentPiece = 16 #set to nothing upon starting
+        self.availablePieces = set(range(16))
+        self.availablePositions = set(range(16))
 
     #experimental method to allow any board to be loaded and simulated from that point
     #NOTE 1 First move function has to be called again to set the current player's piece to place
@@ -32,7 +38,6 @@ class QuartoGame:
     
     def encodeBoard(self):
         return qutil.encodeBoard(self.board)
-    
     
     def showBoard(self):
         if self.gui_mode:
