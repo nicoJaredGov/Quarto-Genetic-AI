@@ -60,7 +60,7 @@ class QuartoGame:
                         else:
                             line += "|  "+piece+"  "
                 print(line)
-            print("._____._____._____._____.")
+            print("._____._____._____._____.\n")
         else:
             print(self.board)
 
@@ -69,3 +69,31 @@ class QuartoGame:
         print("current piece to place: ", self.currentPiece)
         print("available pieces: ", self.availablePieces)
         print("available positions: ", self.availablePositions)
+        print("\n")
+
+    "This function is ONLY for the first move of the game (the first player's first move)"
+    def makeFirstMove(self, nextPiece):
+        self.currentPiece = nextPiece
+        self.availablePieces.remove(self.currentPiece)
+        print("First move successful")
+    
+    "This function is for every move after than the first one"
+    def makeMove(self, position, nextPiece):
+        #checks
+        if position not in self.availablePositions:
+            print("This cell is not empty")
+            return
+        if nextPiece not in self.availablePieces:
+            print("This piece has already been placed or will be placed now")
+            return
+        
+        #place piece on board and update game state
+        row, col = qutil.get2dCoords(position)
+        self.board[row][col] = self.currentPiece
+        self.availablePositions.remove(position)
+
+        #set next player's piece
+        self.currentPiece = nextPiece
+        self.availablePieces.remove(self.currentPiece)
+        
+        print("Move successful")
