@@ -63,3 +63,9 @@ class QuartoGame:
             print("._____._____._____._____.")
         else:
             print(self.board)
+
+    def showGameInformation(self):
+        print("current player: ")
+        print("current piece to place: ", self.currentPiece)
+        print("available pieces: ", self.availablePieces)
+        print("available positions: ", self.availablePositions)
