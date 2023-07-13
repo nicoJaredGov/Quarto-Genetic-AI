@@ -115,3 +115,39 @@ class QuartoGame:
         self.availablePieces.remove(self.currentPiece)
         
         print("Move successful")
+
+    def evaluateBoard(self):
+        #NOTE: for testing only
+        if len(self.availablePositions) == 0:
+            return True #won
+        else:
+            return False #lost
+        
+    def play(self):
+        #first move
+        first_move = self.player1.makeFirstMove()
+        self.makeFirstMove(first_move)
+        turn = False #player 1 - True, player 2 - False
+
+        self.showBoard()
+        self.showGameInformation()
+
+        #subsequent moves
+        while True:
+            #player 1
+            if turn:
+                position, nextPiece = self.player1.makeMove()
+            #player 2
+            else: 
+                position, nextPiece = self.player2.makeMove()
+
+            self.makeMove(position, nextPiece)
+            if (self.evaluateBoard()):
+                if turn: print("Player 1 won!")
+                else: print("Player 2 won!")
+                return
+            
+            turn = not turn
+
+            self.showBoard()
+            self.showGameInformation()
