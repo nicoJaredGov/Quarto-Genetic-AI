@@ -3,7 +3,7 @@ import quarto_util as qutil
 import quarto_agents as qagents
 
 class QuartoGame:
-    def __init__(self, agent1=None, agent2=None, gui_mode=True):
+    def __init__(self, agent1: qagents.GenericQuartoAgent, agent2: qagents.GenericQuartoAgent, gui_mode=True):
         '''
         agent1:
             Agent initialized for player 1. 
