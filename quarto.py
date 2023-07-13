@@ -1,8 +1,26 @@
 import numpy as np
 import quarto_util as qutil
+import quarto_agents as qagents
 
 class QuartoGame:
-    def __init__(self, gui_mode=True):
+    def __init__(self, mode="human-agent", agent1=None, agent2=None, gui_mode=True):
+        '''
+        mode:
+            - "human-human" : actions are made by humans for both sides
+            - "human-agent" : a human versus an agent which picks its own actions
+            - "agent-agent" : agent versus another agent
+        agent1:
+            Agent initialized for player 1. Needed for modes that are not "human-human".
+        agent2:
+            Agent initialized for player 2. Needed for "agent-agent" mode.
+
+        '''
+
+        #check if the required agents have been provided for the respective valid game mode.
+        assert mode in ["human-human", "human-agent", "agent-agent"], "Invalid mode. Valid modes are 'human-human', 'human-agent', 'agent-agent'."
+        #self.checkAgentsValid(mode, agent1!=None, agent2!=None)
+        self.player1 = agent1
+        self.player2 = agent2
 
         #additional config
         self.gui_mode = gui_mode
@@ -11,6 +29,11 @@ class QuartoGame:
         self.currentPiece = 16 #set to nothing upon starting
         self.availablePieces = set(range(16))
         self.availablePositions = set(range(16))
+
+    def checkAgentsValid(self, mode, agent1valid, agent2valid):
+        #TODO Validate that agents are of type Agent class later on.
+        assert mode=="human-agent" and agent1valid, "Agent 1 is not initialized but is required for human-agent mode."
+        assert mode=="agent-agent" and agent1valid and agent2valid, "Agent 1 or Agent 2 or both are not initialized and are both required for agent-agent mode."
 
     #experimental method to allow any board to be loaded and simulated from that point
     #NOTE 1 First move function has to be called again to set the current player's piece to place
