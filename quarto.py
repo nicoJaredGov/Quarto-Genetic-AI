@@ -150,3 +150,35 @@ class QuartoGame:
 
             self.showBoard()
             self.showGameInformation()
+    
+    #pick random piece from available pieces
+    def pickRandomPiece(self):
+        return np.random.choice(list(self.availablePieces))
+    
+    def playRandomFirst(self):
+        #player 1's choice of next piece is randomly chosen
+        self.makeFirstMove(self.pickRandomPiece())
+        turn = False #player 1 - True, player 2 - False
+
+        self.showBoard()
+        self.showGameInformation()
+
+        #subsequent moves
+        while True:
+            #player 1
+            if turn:
+                position, nextPiece = self.player1.makeMove()
+            #player 2
+            else: 
+                position, nextPiece = self.player2.makeMove()
+
+            self.makeMove(position, nextPiece)
+            if (self.evaluateBoard()):
+                if turn: print("Player 1 won!")
+                else: print("Player 2 won!")
+                return
+            
+            turn = not turn
+
+            self.showBoard()
+            self.showGameInformation()
