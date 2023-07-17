@@ -24,34 +24,34 @@ class QuartoGame:
         self.currentPiece = 16 #set to nothing upon starting
         self.availablePieces = set(range(16))
         self.availablePositions = set(range(16))
+        self.moveHistory = list()
 
     def checkAgentsValid(self, agent1, agent2):
         assert agent1 is not None and issubclass(type(agent1), qagents.GenericQuartoAgent), "Agent 1 is not initialized correctly."
         assert agent2 is not None and issubclass(type(agent1), qagents.GenericQuartoAgent), "Agent 2 is not initialized correctly."
 
-    #experimental method to allow any board to be loaded and simulated from that point
-    #NOTE 1 First move function has to be called again to set the current player's piece to place
-    #NOTE 2 There is obviously no game history. Only history after the board is loaded can be recorded.
-    def setBoard(self, board_encoding=None):
-        #no board encoding passed, therefore clear board
-        if board_encoding is None:
-            self.board = np.full((4,4), 16)
-            self.availablePieces = set(range(16))
-            self.availablePositions = set(range(16))
-            
-        else:
-            board_array = [int(board_encoding[i]+board_encoding[i+1]) for i in range(0,len(board_encoding),2)]
+    def resetGame(self):
+        self.board = np.full((4,4), 16)
+        self.currentPiece = 16 #set to nothing upon starting
+        self.availablePieces = set(range(16))
+        self.availablePositions = set(range(16))
+        self.moveHistory = list()
 
-            #determine available positions
-            self.availablePositions = set([i for i, e in enumerate(board_array) if e == 16])
+    #Experimental method to allow any board to be loaded and simulated from that point
+    #NOTE There is no game history as a result. Only history after the board is loaded can be recorded.
+    def setBoard(self, board_encoding):
+        board_array = [int(board_encoding[i]+board_encoding[i+1]) for i in range(0,len(board_encoding),2)]
 
-            #determine which pieces are still available
-            self.availablePieces = set(board_array)
-            if 16 in self.availablePieces:
-                self.availablePieces.remove(16)
-            self.availablePieces = set(range(16)) - self.availablePieces
-  
-            self.board = np.reshape(board_array, (4,4))
+        #determine available positions
+        self.availablePositions = set([i for i, e in enumerate(board_array) if e == 16])
+
+        #determine which pieces are still available
+        self.availablePieces = set(board_array)
+        if 16 in self.availablePieces:
+            self.availablePieces.remove(16)
+        self.availablePieces = set(range(16)) - self.availablePieces
+
+        self.board = np.reshape(board_array, (4,4))
     
     def encodeBoard(self):
         return qutil.encodeBoard(self.board)
@@ -86,23 +86,28 @@ class QuartoGame:
         print("current piece to place: ", self.currentPiece)
         print("available pieces: ", self.availablePieces)
         print("available positions: ", self.availablePositions)
+        print("\nmove history: ", self.moveHistory)
         print("\n")
 
-    #This function is ONLY for the first move of the game (the first player's first move)"
+    #This function is ONLY for the first move of the game (the first player's first move)
     def makeFirstMove(self, nextPiece):
         self.currentPiece = nextPiece
         self.availablePieces.remove(self.currentPiece)
+        self.moveHistory.append((None,nextPiece))
         print("First move successful")
     
     #This function is for every move after than the first one
     def makeMove(self, position, nextPiece):
         #checks
         if position not in self.availablePositions:
-            print("This cell is unavailable")
+            print("This cell is unavailable\n")
             return False
         if nextPiece not in self.availablePieces:
-            print("This piece has already been placed or will be placed now")
+            print("This piece has already been placed or will be placed now\n")
             return False
+        
+        #add to move history
+        self.moveHistory.append((position,nextPiece))
         
         #place piece on board and update game state
         row, col = qutil.get2dCoords(position)
@@ -122,6 +127,8 @@ class QuartoGame:
         lastPosition = self.availablePositions.pop()
         row, col = qutil.get2dCoords(lastPosition)
         self.board[row][col] = self.currentPiece
+        self.moveHistory.append((lastPosition,None))
+        print("Last move successful")
 
     #pick random piece from available pieces
     def pickRandomPiece(self):
@@ -156,8 +163,8 @@ class QuartoGame:
                     validMove = self.makeMove(position, nextPiece)
      
             if (self.isGameOver()):
-                if turn: print("Player 1 won!")
-                else: print("Player 2 won!")
+                if turn: print("\nPlayer 1 won!")
+                else: print("\nPlayer 2 won!")
                 return
             turn = not turn
 
@@ -193,8 +200,8 @@ class QuartoGame:
                     validMove = self.makeMove(position, nextPiece)
      
             if (self.isGameOver()):
-                if turn: print("Player 1 won!")
-                else: print("Player 2 won!")
+                if turn: print("\nPlayer 1 won!")
+                else: print("\nPlayer 2 won!")
                 return
             turn = not turn
 

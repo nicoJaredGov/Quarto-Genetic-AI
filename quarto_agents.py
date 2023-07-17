@@ -18,6 +18,6 @@ class HumanPlayer(GenericQuartoAgent):
         return nextPiece
     
     def makeMove(self):
-        position = int(input("Place the next piece here: "))
+        position = int(input("Cell: "))
         nextPiece = int(input("Your opponent's next piece: "))
         return position, nextPiece
