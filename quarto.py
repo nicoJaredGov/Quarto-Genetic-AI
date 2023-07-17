@@ -88,21 +88,21 @@ class QuartoGame:
         print("available positions: ", self.availablePositions)
         print("\n")
 
-    "This function is ONLY for the first move of the game (the first player's first move)"
+    #This function is ONLY for the first move of the game (the first player's first move)"
     def makeFirstMove(self, nextPiece):
         self.currentPiece = nextPiece
         self.availablePieces.remove(self.currentPiece)
         print("First move successful")
     
-    "This function is for every move after than the first one"
+    #This function is for every move after than the first one
     def makeMove(self, position, nextPiece):
         #checks
         if position not in self.availablePositions:
-            print("This cell is not empty")
-            return
+            print("This cell is unavailable")
+            return False
         if nextPiece not in self.availablePieces:
             print("This piece has already been placed or will be placed now")
-            return
+            return False
         
         #place piece on board and update game state
         row, col = qutil.get2dCoords(position)
@@ -114,13 +114,23 @@ class QuartoGame:
         self.availablePieces.remove(self.currentPiece)
         
         print("Move successful")
+        return True
+    
+    #This method is for automatically placing the last piece in the last position
+    def makeLastMove(self):
+        #get last available position and place final piece there
+        lastPosition = self.availablePositions.pop()
+        row, col = qutil.get2dCoords(lastPosition)
+        self.board[row][col] = self.currentPiece
 
-    def evaluateBoard(self):
+    #pick random piece from available pieces
+    def pickRandomPiece(self):
+        return np.random.choice(list(self.availablePieces))
+
+    #If a winning line is found, then the game is automatically over and a winner is declared
+    def isGameOver(self):
         #NOTE: for testing only
-        if len(self.availablePositions) == 0:
-            return True #won
-        else:
-            return False #lost
+        return False
         
     def play(self):
         #first move
@@ -132,28 +142,33 @@ class QuartoGame:
         self.showGameInformation()
 
         #subsequent moves
-        while True:
+        for i in range(15):
+            validMove = False
             #player 1
             if turn:
-                position, nextPiece = self.player1.makeMove()
+                while not validMove:
+                    position, nextPiece = self.player1.makeMove()
+                    validMove = self.makeMove(position, nextPiece)
             #player 2
             else: 
-                position, nextPiece = self.player2.makeMove()
-
-            self.makeMove(position, nextPiece)
-            if (self.evaluateBoard()):
+                while not validMove:
+                    position, nextPiece = self.player2.makeMove()
+                    validMove = self.makeMove(position, nextPiece)
+     
+            if (self.isGameOver()):
                 if turn: print("Player 1 won!")
                 else: print("Player 2 won!")
                 return
-            
             turn = not turn
 
             self.showBoard()
             self.showGameInformation()
-    
-    #pick random piece from available pieces
-    def pickRandomPiece(self):
-        return np.random.choice(list(self.availablePieces))
+        
+        #place last piece and set nextPiece to nothing
+        self.makeLastMove()
+        
+        self.showBoard()
+        self.showGameInformation()
     
     def playRandomFirst(self):
         #player 1's choice of next piece is randomly chosen
@@ -164,21 +179,30 @@ class QuartoGame:
         self.showGameInformation()
 
         #subsequent moves
-        while True:
+        for i in range(15):
+            validMove = False
             #player 1
             if turn:
-                position, nextPiece = self.player1.makeMove()
+                while not validMove:
+                    position, nextPiece = self.player1.makeMove()
+                    validMove = self.makeMove(position, nextPiece)
             #player 2
             else: 
-                position, nextPiece = self.player2.makeMove()
-
-            self.makeMove(position, nextPiece)
-            if (self.evaluateBoard()):
+                while not validMove:
+                    position, nextPiece = self.player2.makeMove()
+                    validMove = self.makeMove(position, nextPiece)
+     
+            if (self.isGameOver()):
                 if turn: print("Player 1 won!")
                 else: print("Player 2 won!")
                 return
-            
             turn = not turn
 
             self.showBoard()
             self.showGameInformation()
+        
+        #place last piece and set nextPiece to nothing
+        self.makeLastMove()
+        
+        self.showBoard()
+        self.showGameInformation()
