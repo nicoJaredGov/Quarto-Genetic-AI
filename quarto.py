@@ -13,12 +13,12 @@ class QuartoGame:
             Show graphical board if true.
         '''
 
+        #additional config
         self.checkAgentsValid(agent1, agent2)
         self.player1 = agent1
         self.player2 = agent2
-
-        #additional config
         self.gui_mode = gui_mode
+
         #game state
         self.board = np.full((4,4), 16)
         self.currentPiece = 16 #set to nothing upon starting
@@ -28,7 +28,6 @@ class QuartoGame:
     def checkAgentsValid(self, agent1, agent2):
         assert agent1 is not None and issubclass(type(agent1), qagents.GenericQuartoAgent), "Agent 1 is not initialized correctly."
         assert agent2 is not None and issubclass(type(agent1), qagents.GenericQuartoAgent), "Agent 2 is not initialized correctly."
-
 
     #experimental method to allow any board to be loaded and simulated from that point
     #NOTE 1 First move function has to be called again to set the current player's piece to place

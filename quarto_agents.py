@@ -1,13 +1,14 @@
 from abc import ABC, abstractmethod
+from typing import Any
 
 class GenericQuartoAgent(ABC):
     
     @abstractmethod
-    def makeFirstMove(self):
+    def makeFirstMove(self) -> int:
         pass
 
     @abstractmethod
-    def makeMove(self):
+    def makeMove(self) -> Any:
         pass
 
 class HumanPlayer(GenericQuartoAgent):
