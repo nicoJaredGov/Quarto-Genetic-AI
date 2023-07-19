@@ -82,13 +82,20 @@ class QuartoGame:
             print(self.board)
 
     def showGameInformation(self):
-        print("current player: ")
         print("current piece to place: ", self.currentPiece)
         print("available pieces: ", self.availablePieces)
         print("available positions: ", self.availablePositions)
         print("\nmove history: ", self.moveHistory)
         print("\n")
 
+    def getGameState(self):
+        return (
+            self.board,
+            self.currentPiece,
+            self.availablePieces,
+            self.availablePositions
+            )
+    
     #This function is ONLY for the first move of the game (the first player's first move)
     def makeFirstMove(self, nextPiece):
         self.currentPiece = nextPiece
@@ -141,7 +148,7 @@ class QuartoGame:
         
     def play(self):
         #first move
-        first_move = self.player1.makeFirstMove()
+        first_move = self.player1.makeFirstMove(self.getGameState())
         self.makeFirstMove(first_move)
         turn = False #player 1 - True, player 2 - False
 
@@ -154,12 +161,12 @@ class QuartoGame:
             #player 1
             if turn:
                 while not validMove:
-                    position, nextPiece = self.player1.makeMove()
+                    position, nextPiece = self.player1.makeMove(self.getGameState())
                     validMove = self.makeMove(position, nextPiece)
             #player 2
             else: 
                 while not validMove:
-                    position, nextPiece = self.player2.makeMove()
+                    position, nextPiece = self.player2.makeMove(self.getGameState())
                     validMove = self.makeMove(position, nextPiece)
      
             if (self.isGameOver()):
@@ -191,12 +198,12 @@ class QuartoGame:
             #player 1
             if turn:
                 while not validMove:
-                    position, nextPiece = self.player1.makeMove()
+                    position, nextPiece = self.player1.makeMove(self.getGameState())
                     validMove = self.makeMove(position, nextPiece)
             #player 2
             else: 
                 while not validMove:
-                    position, nextPiece = self.player2.makeMove()
+                    position, nextPiece = self.player2.makeMove(self.getGameState())
                     validMove = self.makeMove(position, nextPiece)
      
             if (self.isGameOver()):

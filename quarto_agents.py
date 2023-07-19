@@ -4,11 +4,11 @@ from typing import Any
 class GenericQuartoAgent(ABC):
     
     @abstractmethod
-    def makeFirstMove(self) -> int:
+    def makeFirstMove(self, quartoGameState) -> int:
         pass
 
     @abstractmethod
-    def makeMove(self) -> Any:
+    def makeMove(self, quartoGameState) -> Any:
         pass
 
 class HumanPlayer(GenericQuartoAgent):
