@@ -24,3 +24,16 @@ def get2dCoords(ind):
     col = ind % 4
 
     return (row,col)
+
+#Determines if there is a matching column of bits for a list of integers between 0 (inclusive) and 16 (exclusive)
+def matchingPropertyExists(line):
+    #bitwiseAnd - checks if there is a column of 1s by getting the conjunction
+    #bitwiseNot - checks if there is a column of 0s after negating all integers, masking by 15 (1111) and then getting the conjuction
+    bitwiseAnd = line[0]
+    bitwiseNot = ~line[0] & 15
+    for i in range(1,len(line)):
+        bitwiseAnd &= line[i]
+        bitwiseNot &= ~line[i] & 15
+
+    result = bitwiseAnd | bitwiseNot
+    return result > 0
