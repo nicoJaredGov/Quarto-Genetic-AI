@@ -3,7 +3,7 @@ import quarto_util as qutil
 import quarto_agents as qagents
 
 class QuartoGame:
-    def __init__(self, agent1: qagents.GenericQuartoAgent, agent2: qagents.GenericQuartoAgent, gui_mode=True):
+    def __init__(self, agent1: qagents.GenericQuartoAgent, agent2: qagents.GenericQuartoAgent, gui_mode=True, bin_mode=False):
         '''
         agent1:
             Agent initialized for player 1. 
@@ -17,7 +17,8 @@ class QuartoGame:
         self.checkAgentsValid(agent1, agent2)
         self.player1 = agent1
         self.player2 = agent2
-        self.gui_mode = gui_mode
+        self.gui_mode = gui_mode #show graphical view of board
+        self.bin_mode = bin_mode #if terminal view is shown, replace integer piece representation with binary representation
 
         #game state
         self.board = np.full((4,4), 16)
@@ -58,40 +59,40 @@ class QuartoGame:
     
     def showBoard(self):
         if self.gui_mode:
-            for i in range(4):
-                print("._____._____._____._____.")
-                line = ""
-                for j in range(4):
-                    piece = str(self.board[i][j])
-                    if piece == "16":
-                        piece = "  "
+            if self.bin_mode:
+                for i in range(4):
+                    print(".______.______.______.______.")
+                    line = f"|"
+                    for j in range(4):
+                        if self.board[i][j] == 16:
+                            line += f"      |"
+                        else:
+                            line += f" {self.board[i][j]:04b} |"
+                    print(line)
+                print(".______.______.______.______.\n")
+            else:
+                for i in range(4):
+                    print("._____._____._____._____.")
+                    line = ""
+                    for j in range(4):
+                        piece = str(self.board[i][j])
+                        if piece == "16":
+                            piece = "  "
 
-                    if len(piece) == 2:
-                        if j == 3:
-                            line += "|  "+piece+" |"
+                        if len(piece) == 2:
+                            if j == 3:
+                                line += "|  "+piece+" |"
+                            else:
+                                line += "|  "+piece+" "
                         else:
-                            line += "|  "+piece+" "
-                    else:
-                        if j == 3:
-                            line += "|  "+piece+"  |"
-                        else:
-                            line += "|  "+piece+"  "
-                print(line)
-            print("._____._____._____._____.\n")
+                            if j == 3:
+                                line += "|  "+piece+"  |"
+                            else:
+                                line += "|  "+piece+"  "
+                    print(line)
+                print("._____._____._____._____.\n")
         else:
             print(self.board)
-
-    def showBinaryBoard(self):
-        for i in range(4):
-            print(".______.______.______.______.")
-            line = f"|"
-            for j in range(4):
-                if self.board[i][j] == 16:
-                    line += f"      |"
-                else:
-                    line += f" {self.board[i][j]:04b} |"
-            print(line)
-        print(".______.______.______.______.\n")
 
     def showGameInformation(self):
         print("current piece to place: ", self.currentPiece)
