@@ -142,8 +142,29 @@ class QuartoGame:
         return np.random.choice(list(self.availablePieces))
 
     #If a winning line is found, then the game is automatically over and a winner is declared
-    def isGameOver(self):
-        #NOTE: for testing only
+    def isGameOver(self): 
+        for i in range(4):
+            #check horizontal lines
+            if np.count_nonzero(self.board[i] == 16) == 0:
+                if qutil.matchingPropertyExists(self.board[i]):
+                    return True
+                
+            #check vertical lines
+            if np.count_nonzero(self.board[:,i] == 16) == 0:
+                if qutil.matchingPropertyExists(self.board[:,i]):
+                    return True
+
+        #check obtuse diagonal line
+        if np.count_nonzero(np.diag(self.board) == 16) == 0:
+            if qutil.matchingPropertyExists(np.diag(self.board)):
+                    return True
+            
+        #check acute diagonal line:
+        if np.count_nonzero(np.diag(self.board[::-1]) == 16) == 0:
+            if qutil.matchingPropertyExists(np.diag(self.board[::-1])):
+                    return True
+        
+        #no winning line found
         return False
         
     def play(self):
