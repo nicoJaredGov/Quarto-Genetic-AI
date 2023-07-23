@@ -81,6 +81,18 @@ class QuartoGame:
         else:
             print(self.board)
 
+    def showBinaryBoard(self):
+        for i in range(4):
+            print(".______.______.______.______.")
+            line = f"|"
+            for j in range(4):
+                if self.board[i][j] == 16:
+                    line += f"      |"
+                else:
+                    line += f" {self.board[i][j]:04b} |"
+            print(line)
+        print(".______.______.______.______.\n")
+
     def showGameInformation(self):
         print("current piece to place: ", self.currentPiece)
         print("available pieces: ", self.availablePieces)
