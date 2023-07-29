@@ -25,6 +25,9 @@ def get2dCoords(ind):
 
     return (row,col)
 
+def getLinearCoords(row, col):
+    return 4*row + col
+
 #Determines if there is a matching column of bits for a list of integers between 0 (inclusive) and 16 (exclusive)
 def matchingPropertyExists(line):
     #bitwiseAnd - checks if there is a column of 1s by getting the conjunction

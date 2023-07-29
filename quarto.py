@@ -3,7 +3,7 @@ import quarto_util as qutil
 import quarto_agents as qagents
 
 class QuartoGame:
-    def __init__(self, agent1: qagents.GenericQuartoAgent, agent2: qagents.GenericQuartoAgent, gui_mode=True, bin_mode=False):
+    def __init__(self, name1, agent1: qagents.GenericQuartoAgent, name2, agent2: qagents.GenericQuartoAgent, gui_mode=True, bin_mode=False):
         '''
         agent1:
             Agent initialized for player 1. 
@@ -17,6 +17,8 @@ class QuartoGame:
         self.checkAgentsValid(agent1, agent2)
         self.player1 = agent1
         self.player2 = agent2
+        self.player1Name = name1
+        self.player2Name = name2
         self.gui_mode = gui_mode #show graphical view of board
         self.bin_mode = bin_mode #if terminal view is shown, replace integer piece representation with binary representation
 
@@ -62,12 +64,24 @@ class QuartoGame:
             if self.bin_mode:
                 for i in range(4):
                     print(".______.______.______.______.")
-                    line = f"|"
+                    line = ""
                     for j in range(4):
-                        if self.board[i][j] == 16:
-                            line += f"      |"
+                        piece = str(self.board[i][j])
+                        if piece == "16":
+                            piece = f"({qutil.getLinearCoords(i,j)})"
                         else:
-                            line += f" {self.board[i][j]:04b} |"
+                            piece = f"{self.board[i][j]:04b}"
+
+                        if len(piece) == 4:
+                            if j == 3:
+                                line += "| "+piece+" |"
+                            else:
+                                line += "| "+piece+" "
+                        else:
+                            if j == 3:
+                                line += "| "+piece+"  |"
+                            else:
+                                line += "| "+piece+"  "
                     print(line)
                 print(".______.______.______.______.\n")
             else:
@@ -223,11 +237,18 @@ class QuartoGame:
         self.makeFirstMove(self.pickRandomPiece())
         turn = False #player 1 - True, player 2 - False
 
+        print(f"\n ------{self.player1Name}'s Turn---------\n")
         self.showBoard()
         self.showGameInformation()
 
         #subsequent moves
         for i in range(15):
+
+            if turn:
+                print(f"\n ------{self.player1Name}'s Turn---------\n")
+            else:
+                print(f"\n ------{self.player2Name}'s Turn---------\n")
+
             validMove = False
             #player 1
             if turn:
@@ -242,21 +263,19 @@ class QuartoGame:
 
             self.showBoard()
             self.showGameInformation()
-            
+
             if (self.isGameOver()):
-                if turn: print("\nPlayer 1 won!")
-                else: print("\nPlayer 2 won!")
+                if turn: print(f"\nPlayer 1 ({self.player1Name}) won!")
+                else: print(f"\nPlayer 2 ({self.player2Name}) won!")
                 return
             turn = not turn
 
-            
-        
         #place last piece and set nextPiece to nothing
         self.makeLastMove()
 
         if (self.isGameOver()):
-            if turn: print("\nPlayer 1 won!")
-            else: print("\nPlayer 2 won!")
+            if turn: print(f"\nPlayer 1 ({self.player1Name}) won!")
+            else: print(f"\nPlayer 2 ({self.player2Name}) won!")
             return
         else:
             print("\nDraw!")
