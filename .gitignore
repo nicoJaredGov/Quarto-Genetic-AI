@@ -2,3 +2,4 @@ quarto-sim.ipynb
 /.vscode
 /__pycache__
 ideas.txt
+tests.py
