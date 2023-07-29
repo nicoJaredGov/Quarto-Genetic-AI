@@ -251,6 +251,13 @@ class QuartoGame:
         
         #place last piece and set nextPiece to nothing
         self.makeLastMove()
+
+        if (self.isGameOver()):
+            if turn: print("\nPlayer 1 won!")
+            else: print("\nPlayer 2 won!")
+            return
+        else:
+            print("\nDraw!")
         
         self.showBoard()
         self.showGameInformation()
