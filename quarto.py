@@ -195,6 +195,8 @@ class QuartoGame:
         return False
         
     def play(self):
+        print(f"\n ------{self.player1Name}'s Turn---------\n")
+
         #first move
         first_move = self.player1.makeFirstMove(self.getGameState())
         self.makeFirstMove(first_move)
@@ -205,6 +207,11 @@ class QuartoGame:
 
         #subsequent moves
         for i in range(15):
+            if turn:
+                print(f"\n ------{self.player1Name}'s Turn---------\n")
+            else:
+                print(f"\n ------{self.player2Name}'s Turn---------\n")
+
             validMove = False
             #player 1
             if turn:
@@ -216,34 +223,41 @@ class QuartoGame:
                 while not validMove:
                     position, nextPiece = self.player2.makeMove(self.getGameState())
                     validMove = self.makeMove(position, nextPiece)
-     
+
+            self.showBoard()
+            self.showGameInformation()
+
             if (self.isGameOver()):
                 if turn: print("\nPlayer 1 won!")
                 else: print("\nPlayer 2 won!")
                 return
             turn = not turn
 
-            self.showBoard()
-            self.showGameInformation()
-        
         #place last piece and set nextPiece to nothing
         self.makeLastMove()
         
+        if (self.isGameOver()):
+            if turn: print(f"\nPlayer 1 ({self.player1Name}) won!")
+            else: print(f"\nPlayer 2 ({self.player2Name}) won!")
+            return
+        else:
+            print("\nDraw!")
+            
         self.showBoard()
         self.showGameInformation()
     
-    def playRandomFirst(self):
+    def playRandomFirst(self):      
+        print(f"\n ------{self.player1Name}'s Turn---------\n")
+
         #player 1's choice of next piece is randomly chosen
         self.makeFirstMove(self.pickRandomPiece())
         turn = False #player 1 - True, player 2 - False
 
-        print(f"\n ------{self.player1Name}'s Turn---------\n")
         self.showBoard()
         self.showGameInformation()
 
         #subsequent moves
         for i in range(15):
-
             if turn:
                 print(f"\n ------{self.player1Name}'s Turn---------\n")
             else:
