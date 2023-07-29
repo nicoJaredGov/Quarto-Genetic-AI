@@ -239,15 +239,17 @@ class QuartoGame:
                 while not validMove:
                     position, nextPiece = self.player2.makeMove(self.getGameState())
                     validMove = self.makeMove(position, nextPiece)
-     
+
+            self.showBoard()
+            self.showGameInformation()
+            
             if (self.isGameOver()):
                 if turn: print("\nPlayer 1 won!")
                 else: print("\nPlayer 2 won!")
                 return
             turn = not turn
 
-            self.showBoard()
-            self.showGameInformation()
+            
         
         #place last piece and set nextPiece to nothing
         self.makeLastMove()
