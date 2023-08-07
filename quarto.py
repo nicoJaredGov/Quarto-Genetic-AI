@@ -167,32 +167,6 @@ class QuartoGame:
     #pick random piece from available pieces
     def pickRandomPiece(self):
         return np.random.choice(list(self.availablePieces))
-
-    #If a winning line is found, then the game is automatically over and a winner is declared
-    def isGameOver(self): 
-        for i in range(4):
-            #check horizontal lines
-            if np.count_nonzero(self.board[i] == 16) == 0:
-                if qutil.matchingPropertyExists(self.board[i]):
-                    return True
-                
-            #check vertical lines
-            if np.count_nonzero(self.board[:,i] == 16) == 0:
-                if qutil.matchingPropertyExists(self.board[:,i]):
-                    return True
-
-        #check obtuse diagonal line
-        if np.count_nonzero(np.diag(self.board) == 16) == 0:
-            if qutil.matchingPropertyExists(np.diag(self.board)):
-                    return True
-            
-        #check acute diagonal line:
-        if np.count_nonzero(np.diag(self.board[::-1]) == 16) == 0:
-            if qutil.matchingPropertyExists(np.diag(self.board[::-1])):
-                    return True
-        
-        #no winning line found
-        return False
         
     def play(self):
         print(f"\n ------{self.player1Name}'s Turn---------\n")
@@ -227,7 +201,7 @@ class QuartoGame:
             self.showBoard()
             self.showGameInformation()
 
-            if (self.isGameOver()):
+            if (qutil.isGameOver(self.board)):
                 if turn: print("\nPlayer 1 won!")
                 else: print("\nPlayer 2 won!")
                 return
@@ -236,7 +210,7 @@ class QuartoGame:
         #place last piece and set nextPiece to nothing
         self.makeLastMove()
         
-        if (self.isGameOver()):
+        if (qutil.isGameOver(self.board)):
             if turn: print(f"\nPlayer 1 ({self.player1Name}) won!")
             else: print(f"\nPlayer 2 ({self.player2Name}) won!")
             return
@@ -278,7 +252,7 @@ class QuartoGame:
             self.showBoard()
             self.showGameInformation()
 
-            if (self.isGameOver()):
+            if (qutil.isGameOver(self.board)):
                 if turn: print(f"\nPlayer 1 ({self.player1Name}) won!")
                 else: print(f"\nPlayer 2 ({self.player2Name}) won!")
                 return
@@ -287,7 +261,7 @@ class QuartoGame:
         #place last piece and set nextPiece to nothing
         self.makeLastMove()
 
-        if (self.isGameOver()):
+        if (qutil.isGameOver(self.board)):
             if turn: print(f"\nPlayer 1 ({self.player1Name}) won!")
             else: print(f"\nPlayer 2 ({self.player2Name}) won!")
             return

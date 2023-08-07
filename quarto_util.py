@@ -40,3 +40,28 @@ def matchingPropertyExists(line):
 
     result = bitwiseAnd | bitwiseNot
     return result > 0
+
+def isGameOver(board): 
+    for i in range(4):
+        #check horizontal lines
+        if np.count_nonzero(board[i] == 16) == 0:
+            if matchingPropertyExists(board[i]):
+                return True
+            
+        #check vertical lines
+        if np.count_nonzero(board[:,i] == 16) == 0:
+            if matchingPropertyExists(board[:,i]):
+                return True
+
+    #check obtuse diagonal line
+    if np.count_nonzero(np.diag(board) == 16) == 0:
+        if matchingPropertyExists(np.diag(board)):
+                return True
+        
+    #check acute diagonal line:
+    if np.count_nonzero(np.diag(board[::-1]) == 16) == 0:
+        if matchingPropertyExists(np.diag(board[::-1])):
+                return True
+    
+    #no winning line found
+    return False
