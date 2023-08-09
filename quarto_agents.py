@@ -83,6 +83,41 @@ class NegamaxAgent(GenericQuartoAgent):
                 
         return score
     
-    def evaluation(self, boardArray):
+    #counts how many lines of three pieces with an identical property
+    def evaluation(self, board):
         #can check in transposition table here
-        return 1
+
+        tempLine = None
+        numLines = 0
+
+        for i in range(4):
+            #check horizontal lines
+            tempLine = list(board[i])
+            if np.count_nonzero(board[i] == 16) == 1:
+                tempLine.remove(16)
+                if qutil.matchingPropertyExists(tempLine):
+                    numLines += 1
+            
+            tempLine = list(board[:,i])
+            #check vertical lines
+            if np.count_nonzero(board[:,i] == 16) == 1:
+                tempLine.remove(16)
+                if qutil.matchingPropertyExists(tempLine):
+                    numLines += 1
+
+        #check obtuse diagonal line
+        tempLine = list(np.diag(board))
+        if np.count_nonzero(np.diag(board) == 16) == 1:
+            tempLine.remove(16)
+            if qutil.matchingPropertyExists(tempLine):
+                    numLines += 1
+            
+        #check acute diagonal line:
+        tempLine = list(np.diag(board[::-1]))
+        if np.count_nonzero(np.diag(board[::-1]) == 16) == 1:
+            tempLine.remove(16)
+            if qutil.matchingPropertyExists(tempLine):
+                    numLines += 1
+        
+        #no winning line found
+        return numLines
