@@ -46,42 +46,48 @@ class NegamaxAgent(GenericQuartoAgent):
         return nextPiece
     
     def makeMove(self, quartoGameState):
-        position = random.choice(list(quartoGameState[3]))
-        nextPiece = random.choice(list(quartoGameState[2]))
+        maxScore, (position, nextPiece) = self.alphaBeta(quartoGameState, 3, -np.inf, np.inf)
         print(f"Random agent placed piece at cell {position} and nextPiece is {nextPiece}")
+        print("max ",maxScore)
         return position, nextPiece
     
     def alphaBeta(self, quartoGameState, depth, alpha, beta):
         board, currentPiece, availableNextPieces, availablePositions = quartoGameState
 
-        if depth == 0 or qutil.isGameOver(board) or len(availablePositions) == 0:
-            return self.evaluation(board)
+        if qutil.isGameOver(board):
+            return -np.inf, (16,16)
+        if depth == 0 or len(availablePositions) == 0:
+            return self.evaluation(board), (16,16)
         
-        score = -np.inf
+        maxScore = -np.inf
+        bestMove = (16,17)
+
         for move in itertools.product(availablePositions, availableNextPieces):
+            #print("\ndepth:", depth,"move:", move)
             #simulate move
             row, col = qutil.get2dCoords(move[0])
             board[row][col] = currentPiece
             availablePositions.remove(move[0])
-            availableNextPieces.remove(currentPiece)
+            availableNextPieces.remove(move[1])
             nextGameState = (board, move[1], availableNextPieces, availablePositions)
 
             #call for next turn
-            cur = -self.alphaBeta(nextGameState, depth-1, -beta, -alpha)
-            if cur > score:
-                score = cur
-            if score > alpha:
-                alpha = score
+            cur = -self.alphaBeta(nextGameState, depth-1, -beta, -alpha)[0]
+            if cur > maxScore:
+                maxScore = cur
+                bestMove = move
+            alpha = max(alpha, maxScore)
             
             #undo simulated move
             board[row][col] = 16
             availablePositions.add(move[0])
-            availableNextPieces.add(currentPiece)
+            availableNextPieces.add(move[1])
 
-            if alpha >= beta:
-                return alpha
+            #print(f"score: {cur}  a: {alpha}  b: {beta}")
+            if alpha > beta:
+                return alpha, bestMove
                 
-        return score
+        return maxScore, bestMove
     
     #counts how many lines of three pieces with an identical property
     def evaluation(self, board):
