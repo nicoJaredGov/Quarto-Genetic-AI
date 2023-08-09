@@ -51,12 +51,38 @@ class NegamaxAgent(GenericQuartoAgent):
         print(f"Random agent placed piece at cell {position} and nextPiece is {nextPiece}")
         return position, nextPiece
     
-    def alphaBeta(self, board, availablePositions, availableNextPieces, depth, alpha, beta):
+    def alphaBeta(self, quartoGameState, depth, alpha, beta):
+        board, currentPiece, availableNextPieces, availablePositions = quartoGameState
+
         if depth == 0 or qutil.isGameOver(board) or len(availablePositions) == 0:
             return self.evaluation(board)
         
         score = -np.inf
         for move in itertools.product(availablePositions, availableNextPieces):
-            
+            #simulate move
+            row, col = qutil.get2dCoords(move[0])
+            board[row][col] = currentPiece
+            availablePositions.remove(move[0])
+            availableNextPieces.remove(currentPiece)
+            nextGameState = (board, move[1], availableNextPieces, availablePositions)
 
+            #call for next turn
+            cur = -self.alphaBeta(nextGameState, depth-1, -beta, -alpha)
+            if cur > score:
+                score = cur
+            if score > alpha:
+                alpha = score
+            
+            #undo simulated move
+            board[row][col] = 16
+            availablePositions.add(move[0])
+            availableNextPieces.add(currentPiece)
+
+            if alpha >= beta:
+                return alpha
+                
+        return score
+    
     def evaluation(self, boardArray):
+        #can check in transposition table here
+        return 1
