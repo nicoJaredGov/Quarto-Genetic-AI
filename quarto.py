@@ -231,7 +231,7 @@ class QuartoGame:
         self.showGameInformation()
 
         #subsequent moves
-        for i in range(15):
+        for i in range(len(self.availablePositions)-1):
             if turn:
                 print(f"\n ------{self.player1Name}'s Turn---------\n")
             else:
