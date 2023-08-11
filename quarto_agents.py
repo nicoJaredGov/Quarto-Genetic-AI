@@ -60,7 +60,7 @@ class NegamaxAgent(GenericQuartoAgent):
             return self.evaluation(board), (16,16)
         
         maxScore = -np.inf
-        bestMove = (16,17)
+        bestMove = (16,16)
 
         for move in itertools.product(availablePositions, availableNextPieces):
             #print("\ndepth:", depth,"move:", move)
@@ -73,7 +73,7 @@ class NegamaxAgent(GenericQuartoAgent):
 
             #call for next turn
             cur = -self.alphaBeta(nextGameState, depth-1, -beta, -alpha)[0]
-            if cur > maxScore:
+            if cur >= maxScore:
                 maxScore = cur
                 bestMove = move
             alpha = max(alpha, maxScore)
