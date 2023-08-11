@@ -41,12 +41,16 @@ class RandomQuartoAgent(GenericQuartoAgent):
 #NegaMax with Alpha-Beta pruning   
 class NegamaxAgent(GenericQuartoAgent):
 
+    def __init__(self, depth) -> None:
+        super().__init__()
+        self.depth = depth
+
     def makeFirstMove(self, quartoGameState):
         nextPiece = random.choice(list(quartoGameState[2]))
         return nextPiece
     
     def makeMove(self, quartoGameState):
-        maxScore, (position, nextPiece) = self.alphaBeta(quartoGameState, 3, -np.inf, np.inf)
+        maxScore, (position, nextPiece) = self.alphaBeta(quartoGameState, self.depth, -np.inf, np.inf)
         print(f"Random agent placed piece at cell {position} and nextPiece is {nextPiece}")
         print("max ",maxScore)
         return position, nextPiece
