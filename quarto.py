@@ -237,17 +237,24 @@ class QuartoGame:
             else:
                 print(f"\n ------{self.player2Name}'s Turn---------\n")
 
-            validMove = False
             #player 1
             if turn:
-                while not validMove:
+                for i in range(3):
                     position, nextPiece = self.player1.makeMove(self.getGameState())
                     validMove = self.makeMove(position, nextPiece)
+                    if validMove: break
+                    elif i==2:
+                        print("Three invalid moves made - game ended")
+                        return
             #player 2
             else: 
-                while not validMove:
+                for i in range(3):
                     position, nextPiece = self.player2.makeMove(self.getGameState())
                     validMove = self.makeMove(position, nextPiece)
+                    if validMove: break
+                    elif i==2:
+                        print("Three invalid moves made - game ended")
+                        return
 
             self.showBoard()
             self.showGameInformation()
