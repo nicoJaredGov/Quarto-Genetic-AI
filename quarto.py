@@ -13,7 +13,7 @@ class QuartoGame:
             Show graphical board if true.
         '''
 
-        #additional config
+        #additional configuration
         self.checkAgentsValid(agent1, agent2)
         self.player1 = agent1
         self.player2 = agent2
@@ -58,55 +58,61 @@ class QuartoGame:
     
     def encodeBoard(self):
         return qutil.encodeBoard(self.board)
-    
-    def showBoard(self):
-        if self.gui_mode:
-            if self.bin_mode:
-                for i in range(4):
-                    print(".______.______.______.______.")
-                    line = ""
-                    for j in range(4):
-                        piece = str(self.board[i][j])
-                        if piece == "16":
-                            piece = f"({qutil.getLinearCoords(i,j)})"
-                        else:
-                            piece = f"{self.board[i][j]:04b}"
 
-                        if len(piece) == 4:
-                            if j == 3:
-                                line += "| "+piece+" |"
-                            else:
-                                line += "| "+piece+" "
-                        else:
-                            if j == 3:
-                                line += "| "+piece+"  |"
-                            else:
-                                line += "| "+piece+"  "
-                    print(line)
-                print(".______.______.______.______.\n")
-            else:
-                for i in range(4):
-                    print("._____._____._____._____.")
-                    line = ""
-                    for j in range(4):
-                        piece = str(self.board[i][j])
-                        if piece == "16":
-                            piece = "  "
-
-                        if len(piece) == 2:
-                            if j == 3:
-                                line += "|  "+piece+" |"
-                            else:
-                                line += "|  "+piece+" "
-                        else:
-                            if j == 3:
-                                line += "|  "+piece+"  |"
-                            else:
-                                line += "|  "+piece+"  "
-                    print(line)
-                print("._____._____._____._____.\n")
+    def showPlayerName(self, turn):
+        #turn
+        #True = player 1
+        #False = player 2
+        if turn:
+            print(f"\n ------{self.player1Name}'s Turn---------\n")
         else:
-            print(self.board)
+            print(f"\n ------{self.player2Name}'s Turn---------\n")   
+
+    def showBoard(self):
+        if self.bin_mode:
+            for i in range(4):
+                print(".______.______.______.______.")
+                line = ""
+                for j in range(4):
+                    piece = str(self.board[i][j])
+                    if piece == "16":
+                        piece = f"({qutil.getLinearCoords(i,j)})"
+                    else:
+                        piece = f"{self.board[i][j]:04b}"
+
+                    if len(piece) == 4:
+                        if j == 3:
+                            line += "| "+piece+" |"
+                        else:
+                            line += "| "+piece+" "
+                    else:
+                        if j == 3:
+                            line += "| "+piece+"  |"
+                        else:
+                            line += "| "+piece+"  "
+                print(line)
+            print(".______.______.______.______.\n")
+        else:
+            for i in range(4):
+                print("._____._____._____._____.")
+                line = ""
+                for j in range(4):
+                    piece = str(self.board[i][j])
+                    if piece == "16":
+                        piece = "  "
+
+                    if len(piece) == 2:
+                        if j == 3:
+                            line += "|  "+piece+" |"
+                        else:
+                            line += "|  "+piece+" "
+                    else:
+                        if j == 3:
+                            line += "|  "+piece+"  |"
+                        else:
+                            line += "|  "+piece+"  "
+                print(line)
+            print("._____._____._____._____.\n")
 
     def showGameInformation(self):
         print("current piece to place: ", self.currentPiece)
@@ -115,6 +121,10 @@ class QuartoGame:
         print("\nmove history: ", self.moveHistory)
         print("\n")
 
+    def showGameState(self):
+        self.showBoard()
+        self.showGameInformation()
+        
     def getGameState(self):
         return (
             self.board,
@@ -128,11 +138,17 @@ class QuartoGame:
         self.currentPiece = nextPiece
         self.availablePieces.remove(self.currentPiece)
         self.moveHistory.append((None,nextPiece))
-        print("First move successful")
+        if self.gui_mode: print("First move successful")
     
     #This function is for every move after than the first one
     def makeMove(self, position, nextPiece):
-        #checks
+        #validation checks
+        if position not in range(16):
+            print("This position does not exist\n")
+            return
+        if nextPiece not in range(16):
+            print("This piece does not exist\n")
+            return
         if position not in self.availablePositions:
             print("This cell is unavailable\n")
             return False
@@ -152,7 +168,7 @@ class QuartoGame:
         self.currentPiece = nextPiece
         self.availablePieces.remove(self.currentPiece)
         
-        print("Move successful")
+        if self.gui_mode: print("Move successful")
         return True
     
     #This method is for automatically placing the last piece in the last position
@@ -162,52 +178,56 @@ class QuartoGame:
         row, col = qutil.get2dCoords(lastPosition)
         self.board[row][col] = self.currentPiece
         self.moveHistory.append((lastPosition,None))
-        print("Last move successful")
+        if self.gui_mode: print("Last move successful")
 
     #pick random piece from available pieces
     def pickRandomPiece(self):
         return np.random.choice(list(self.availablePieces))
         
     def play(self):
-        print(f"\n ------{self.player1Name}'s Turn---------\n")
+        turn = True #player 1 - True, player 2 - False
+        if self.gui_mode: self.showPlayerName(turn)
 
         #first move
         first_move = self.player1.makeFirstMove(self.getGameState())
         self.makeFirstMove(first_move)
-        turn = False #player 1 - True, player 2 - False
+        turn = False 
 
-        self.showBoard()
-        self.showGameInformation()
+        if self.gui_mode: self.showGameState()
 
         #subsequent moves
-        for i in range(15):
-            if turn:
-                print(f"\n ------{self.player1Name}'s Turn---------\n")
-            else:
-                print(f"\n ------{self.player2Name}'s Turn---------\n")
+        for i in range(len(self.availablePositions)-1):
+            if self.gui_mode: self.showPlayerName(turn)
 
-            validMove = False
             #player 1
             if turn:
-                while not validMove:
+                for i in range(3):
                     position, nextPiece = self.player1.makeMove(self.getGameState())
                     validMove = self.makeMove(position, nextPiece)
+                    if validMove: break
+                    elif i==2:
+                        print("Three invalid moves made - game ended")
+                        return
             #player 2
             else: 
-                while not validMove:
+                for i in range(3):
                     position, nextPiece = self.player2.makeMove(self.getGameState())
                     validMove = self.makeMove(position, nextPiece)
+                    if validMove: break
+                    elif i==2:
+                        print("Three invalid moves made - game ended")
+                        return
 
-            self.showBoard()
-            self.showGameInformation()
+            if self.gui_mode: self.showGameState()
 
             if (qutil.isGameOver(self.board)):
-                if turn: print("\nPlayer 1 won!")
-                else: print("\nPlayer 2 won!")
+                if turn: print(f"\nPlayer 1 ({self.player1Name}) won!")
+                else: print(f"\nPlayer 2 ({self.player2Name}) won!")
                 return
             turn = not turn
 
         #place last piece and set nextPiece to nothing
+        if self.gui_mode: self.showPlayerName(turn)
         self.makeLastMove()
         
         if (qutil.isGameOver(self.board)):
@@ -217,25 +237,21 @@ class QuartoGame:
         else:
             print("\nDraw!")
             
-        self.showBoard()
-        self.showGameInformation()
+        if self.gui_mode: self.showGameState()
     
     def playRandomFirst(self):      
-        print(f"\n ------{self.player1Name}'s Turn---------\n")
+        turn = True #player 1 - True, player 2 - False
+        if self.gui_mode: self.showPlayerName(turn)
 
         #player 1's choice of next piece is randomly chosen
         self.makeFirstMove(self.pickRandomPiece())
-        turn = False #player 1 - True, player 2 - False
+        turn = False
 
-        self.showBoard()
-        self.showGameInformation()
+        if self.gui_mode: self.showGameState()
 
         #subsequent moves
         for i in range(len(self.availablePositions)-1):
-            if turn:
-                print(f"\n ------{self.player1Name}'s Turn---------\n")
-            else:
-                print(f"\n ------{self.player2Name}'s Turn---------\n")
+            if self.gui_mode: self.showPlayerName(turn)
 
             #player 1
             if turn:
@@ -256,8 +272,7 @@ class QuartoGame:
                         print("Three invalid moves made - game ended")
                         return
 
-            self.showBoard()
-            self.showGameInformation()
+            if self.gui_mode: self.showGameState()
 
             if (qutil.isGameOver(self.board)):
                 if turn: print(f"\nPlayer 1 ({self.player1Name}) won!")
@@ -266,6 +281,7 @@ class QuartoGame:
             turn = not turn
 
         #place last piece and set nextPiece to nothing
+        if self.gui_mode: self.showPlayerName(turn)
         self.makeLastMove()
 
         if (qutil.isGameOver(self.board)):
@@ -275,5 +291,4 @@ class QuartoGame:
         else:
             print("\nDraw!")
         
-        self.showBoard()
-        self.showGameInformation()
+        if self.gui_mode: self.showGameState()
