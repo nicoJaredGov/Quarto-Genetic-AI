@@ -51,7 +51,7 @@ class NegamaxAgent(GenericQuartoAgent):
     
     def makeMove(self, quartoGameState):
         #print("\nSTATE RECEIVED: ", quartoGameState)
-        maxScore, (position, nextPiece) = self.alphaBeta(quartoGameState, self.depth, -np.inf, np.inf)
+        maxScore, (position, nextPiece) = self.alphaBeta(quartoGameState, self.depth, -1000, 1000)
         print(f"Negamax agent placed piece at cell {position} and nextPiece is {nextPiece}")
         print("maxEval: ",maxScore)
         return position, nextPiece
@@ -61,7 +61,7 @@ class NegamaxAgent(GenericQuartoAgent):
 
         if qutil.isGameOver(board):
             return -np.inf, (16,16)
-        if depth == 0 or len(availablePositions) == 0:
+        if depth == 0 or len(availableNextPieces) == 0:
             return self.evaluation(board), (16,16)
         
         maxScore = -np.inf
@@ -89,7 +89,7 @@ class NegamaxAgent(GenericQuartoAgent):
             availableNextPieces.add(move[1])
 
             #print(f"score: {cur}  a: {alpha}  b: {beta}")
-            if alpha >= beta:
+            if alpha > beta:
                 return alpha, bestMove
                 
         return maxScore, bestMove
