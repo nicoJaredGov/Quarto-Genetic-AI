@@ -229,6 +229,8 @@ class QuartoGame:
         #place last piece and set nextPiece to nothing
         if self.gui_mode: self.showPlayerName(turn)
         self.makeLastMove()
+
+        if self.gui_mode: self.showGameState()
         
         if (qutil.isGameOver(self.board)):
             if turn: print(f"\nPlayer 1 ({self.player1Name}) won!")
@@ -237,7 +239,7 @@ class QuartoGame:
         else:
             print("\nDraw!")
             
-        if self.gui_mode: self.showGameState()
+        
     
     def playRandomFirst(self):      
         turn = True #player 1 - True, player 2 - False
@@ -284,6 +286,8 @@ class QuartoGame:
         if self.gui_mode: self.showPlayerName(turn)
         self.makeLastMove()
 
+        if self.gui_mode: self.showGameState()
+
         if (qutil.isGameOver(self.board)):
             if turn: print(f"\nPlayer 1 ({self.player1Name}) won!")
             else: print(f"\nPlayer 2 ({self.player2Name}) won!")
@@ -291,4 +295,4 @@ class QuartoGame:
         else:
             print("\nDraw!")
         
-        if self.gui_mode: self.showGameState()
+        
