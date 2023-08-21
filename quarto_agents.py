@@ -46,7 +46,7 @@ class NegamaxAgent(GenericQuartoAgent):
         self.depth = depth
 
     def makeFirstMove(self, quartoGameState):
-        nextPiece = random.choice(list(quartoGameState[2]))
+        nextPiece = int(input("Pick your opponent's first piece: "))
         return nextPiece
     
     def makeMove(self, quartoGameState):
@@ -61,9 +61,12 @@ class NegamaxAgent(GenericQuartoAgent):
 
         if qutil.isGameOver(board):
             return -np.inf, (16,16)
-        if depth == 0 or len(availableNextPieces) == 0:
+        if depth == 0 or len(availablePositions) == 0:
             return self.evaluation(board), (16,16)
         
+        if len(availableNextPieces) == 0:
+            availableNextPieces.add(16)
+
         maxScore = -np.inf
         bestMove = (16,16)
 
@@ -90,8 +93,10 @@ class NegamaxAgent(GenericQuartoAgent):
 
             #print(f"score: {cur}  a: {alpha}  b: {beta}")
             if alpha > beta:
+                availableNextPieces.discard(16)
                 return alpha, bestMove
-                
+
+        availableNextPieces.discard(16)        
         return maxScore, bestMove
     
     #counts how many lines of three pieces with an identical property
