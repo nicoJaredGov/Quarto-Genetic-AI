@@ -13,7 +13,7 @@ class QuartoGame:
             Show graphical board if true.
         '''
 
-        #additional configuration
+        # additional configuration
         self.checkAgentsValid(agent1, agent2)
         self.player1 = agent1
         self.player2 = agent2
@@ -22,7 +22,7 @@ class QuartoGame:
         self.gui_mode = gui_mode #show graphical view of board
         self.bin_mode = bin_mode #if terminal view is shown, replace integer piece representation with binary representation
 
-        #game state
+        # game state
         self.board = np.full((4,4), 16)
         self.currentPiece = 16 #set to nothing upon starting
         self.availablePieces = set(range(16))
@@ -40,8 +40,8 @@ class QuartoGame:
         self.availablePositions = set(range(16))
         self.moveHistory = list()
 
-    #Experimental method to allow any board to be loaded and simulated from that point
-    #NOTE There is no game history as a result. Only history after the board is loaded can be recorded.
+    # Experimental method to allow any board to be loaded and simulated from that point
+    # NOTE There is no game history as a result. Only history after the board is loaded can be recorded.
     def setBoard(self, board_encoding):
         board_array = [int(board_encoding[i]+board_encoding[i+1]) for i in range(0,len(board_encoding),2)]
 
@@ -133,14 +133,14 @@ class QuartoGame:
             self.availablePositions
             )
     
-    #This function is ONLY for the first move of the game (the first player's first move)
+    # This method is ONLY for the first move of the game (the first player's first move)
     def makeFirstMove(self, nextPiece):
         self.currentPiece = nextPiece
         self.availablePieces.remove(self.currentPiece)
         self.moveHistory.append((None,nextPiece))
         if self.gui_mode: print("First move successful")
     
-    #This function is for every move after than the first one
+    # This method is for every move after than the first one
     def makeMove(self, position, nextPiece):
         #validation checks
         if position not in range(16):
@@ -171,7 +171,7 @@ class QuartoGame:
         if self.gui_mode: print("Move successful")
         return True
     
-    #This method is for automatically placing the last piece in the last position
+    # This method is for automatically placing the last piece in the last position
     def makeLastMove(self):
         #get last available position and place final piece there
         lastPosition = self.availablePositions.pop()
@@ -180,26 +180,26 @@ class QuartoGame:
         self.moveHistory.append((lastPosition,None))
         if self.gui_mode: print("Last move successful")
 
-    #pick random piece from available pieces
+    # Pick random piece from available pieces
     def pickRandomPiece(self):
         return np.random.choice(list(self.availablePieces))
         
     def play(self):
-        turn = True #player 1 - True, player 2 - False
+        turn = True # player 1 - True, player 2 - False
         if self.gui_mode: self.showPlayerName(turn)
 
-        #first move
+        # first move
         first_move = self.player1.makeFirstMove(self.getGameState())
         self.makeFirstMove(first_move)
         turn = False 
 
         if self.gui_mode: self.showGameState()
 
-        #subsequent moves
+        # subsequent moves
         for i in range(len(self.availablePositions)-1):
             if self.gui_mode: self.showPlayerName(turn)
 
-            #player 1
+            # player 1
             if turn:
                 for i in range(3):
                     position, nextPiece = self.player1.makeMove(self.getGameState())
@@ -208,7 +208,7 @@ class QuartoGame:
                     elif i==2:
                         print("Three invalid moves made - game ended")
                         return
-            #player 2
+            # player 2
             else: 
                 for i in range(3):
                     position, nextPiece = self.player2.makeMove(self.getGameState())
@@ -226,7 +226,7 @@ class QuartoGame:
                 return
             turn = not turn
 
-        #place last piece and set nextPiece to nothing
+        # Place last piece and set nextPiece to nothing
         if self.gui_mode: self.showPlayerName(turn)
         self.makeLastMove()
 
@@ -251,11 +251,11 @@ class QuartoGame:
 
         if self.gui_mode: self.showGameState()
 
-        #subsequent moves
+        # subsequent moves
         for i in range(len(self.availablePositions)-1):
             if self.gui_mode: self.showPlayerName(turn)
 
-            #player 1
+            # player 1
             if turn:
                 for i in range(3):
                     position, nextPiece = self.player1.makeMove(self.getGameState())
@@ -264,7 +264,7 @@ class QuartoGame:
                     elif i==2:
                         print("Three invalid moves made - game ended")
                         return
-            #player 2
+            # player 2
             else: 
                 for i in range(3):
                     position, nextPiece = self.player2.makeMove(self.getGameState())
@@ -282,7 +282,7 @@ class QuartoGame:
                 return
             turn = not turn
 
-        #place last piece and set nextPiece to nothing
+        # Place last piece and set nextPiece to nothing
         if self.gui_mode: self.showPlayerName(turn)
         self.makeLastMove()
 

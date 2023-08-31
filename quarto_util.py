@@ -28,10 +28,10 @@ def get2dCoords(ind):
 def getLinearCoords(row, col):
     return 4*row + col
 
-#Determines if there is a matching column of bits for a list of integers between 0 (inclusive) and 16 (exclusive)
+# Determines if there is a matching column of bits for a list of integers between 0 (inclusive) and 16 (exclusive)
 def matchingPropertyExists(line):
-    #bitwiseAnd - checks if there is a column of 1s by getting the conjunction
-    #bitwiseNot - checks if there is a column of 0s after negating all integers, masking by 15 (1111) and then getting the conjuction
+    # bitwiseAnd - checks if there is a column of 1s by getting the conjunction
+    # bitwiseNot - checks if there is a column of 0s after negating all integers, masking by 15 (1111) and then getting the conjuction
     bitwiseAnd = line[0]
     bitwiseNot = ~line[0] & 15
     for i in range(1,len(line)):
@@ -43,25 +43,25 @@ def matchingPropertyExists(line):
 
 def isGameOver(board): 
     for i in range(4):
-        #check horizontal lines
+        # check horizontal lines
         if np.count_nonzero(board[i] == 16) == 0:
             if matchingPropertyExists(board[i]):
                 return True
             
-        #check vertical lines
+        # check vertical lines
         if np.count_nonzero(board[:,i] == 16) == 0:
             if matchingPropertyExists(board[:,i]):
                 return True
 
-    #check obtuse diagonal line
+    # check obtuse diagonal line
     if np.count_nonzero(np.diag(board) == 16) == 0:
         if matchingPropertyExists(np.diag(board)):
                 return True
         
-    #check acute diagonal line:
+    # check acute diagonal line:
     if np.count_nonzero(np.diag(board[::-1]) == 16) == 0:
         if matchingPropertyExists(np.diag(board[::-1])):
                 return True
     
-    #no winning line found
+    # no winning line found
     return False

@@ -38,13 +38,14 @@ class RandomQuartoAgent(GenericQuartoAgent):
         print(f"Random agent placed piece at cell {position} and nextPiece is {nextPiece}")
         return position, nextPiece
    
-#NegaMax with Alpha-Beta pruning   
+# NegaMax with Alpha-Beta pruning   
 class NegamaxAgent(GenericQuartoAgent):
 
     def __init__(self, depth) -> None:
         super().__init__()
         self.depth = depth
 
+    # Only used in debugging
     def makeFirstMove(self, quartoGameState):
         nextPiece = int(input("Pick your opponent's first piece: "))
         return nextPiece
@@ -71,7 +72,7 @@ class NegamaxAgent(GenericQuartoAgent):
         bestMove = (16,16)
 
         for move in itertools.product(availablePositions, availableNextPieces):
-            #print("\ndepth:", depth,"move:", move)
+            print("\ndepth:", depth,"move:", move)
             #simulate move
             row, col = qutil.get2dCoords(move[0])
             board[row][col] = currentPiece
@@ -91,7 +92,7 @@ class NegamaxAgent(GenericQuartoAgent):
             availablePositions.add(move[0])
             availableNextPieces.add(move[1])
 
-            #print(f"score: {cur}  a: {alpha}  b: {beta}")
+            print(f"score: {cur}  a: {alpha}  b: {beta}")
             if alpha > beta:
                 availableNextPieces.discard(16)
                 return alpha, bestMove
