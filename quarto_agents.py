@@ -41,9 +41,10 @@ class RandomQuartoAgent(GenericQuartoAgent):
 # NegaMax with Alpha-Beta pruning   
 class NegamaxAgent(GenericQuartoAgent):
 
-    def __init__(self, depth) -> None:
+    def __init__(self, depth, searchWindow) -> None:
         super().__init__()
         self.depth = depth
+        self.searchWindow = searchWindow
 
     # Only used in debugging
     def makeFirstMove(self, quartoGameState):
@@ -71,23 +72,38 @@ class NegamaxAgent(GenericQuartoAgent):
         maxScore = -np.inf
         bestMove = (16,16)
 
-        for move in itertools.product(availablePositions, availableNextPieces):
+        '''
+        The move ordering for the search window is as follows - We cycle through all available positions for a single next piece before considering
+        another next piece. This way all positions are prioritized and explored first over exploring all next pieces for a single position.
+        '''
+        # search window counter
+        counter = 0
+
+        for move in itertools.product(availableNextPieces, availablePositions):
+            #search window increment and termination
+            counter += 1
+            if counter > self.searchWindow:
+                break
+
+            #switch move indices to match format: (position, nextPiece)
+            move = (move[1],move[0])
+
             print("\ndepth:", depth,"move:", move)
-            #simulate move
+            # simulate move
             row, col = qutil.get2dCoords(move[0])
             board[row][col] = currentPiece
             availablePositions.remove(move[0])
             availableNextPieces.remove(move[1])
             nextGameState = (board, move[1], availableNextPieces, availablePositions)
 
-            #call for next turn
+            # call for next turn
             cur = -self.alphaBeta(nextGameState, depth-1, -beta, -alpha)[0]
             if cur >= maxScore:
                 maxScore = cur
                 bestMove = move
             alpha = max(alpha, maxScore)
             
-            #undo simulated move
+            # undo simulated move
             board[row][col] = 16
             availablePositions.add(move[0])
             availableNextPieces.add(move[1])
@@ -100,15 +116,15 @@ class NegamaxAgent(GenericQuartoAgent):
         availableNextPieces.discard(16)        
         return maxScore, bestMove
     
-    #counts how many lines of three pieces with an identical property
+    # Counts how many lines of three pieces with an identical property
     def evaluation(self, board):
-        #can check in transposition table here
+        # can check in transposition table here
 
         tempLine = None
         numLines = 0
 
         for i in range(4):
-            #check horizontal lines
+            # check horizontal lines
             tempLine = list(board[i])
             if np.count_nonzero(board[i] == 16) == 1:
                 tempLine.remove(16)
@@ -116,25 +132,25 @@ class NegamaxAgent(GenericQuartoAgent):
                     numLines += 1
             
             tempLine = list(board[:,i])
-            #check vertical lines
+            # check vertical lines
             if np.count_nonzero(board[:,i] == 16) == 1:
                 tempLine.remove(16)
                 if qutil.matchingPropertyExists(tempLine):
                     numLines += 1
 
-        #check obtuse diagonal line
+        # check obtuse diagonal line
         tempLine = list(np.diag(board))
         if np.count_nonzero(np.diag(board) == 16) == 1:
             tempLine.remove(16)
             if qutil.matchingPropertyExists(tempLine):
                     numLines += 1
             
-        #check acute diagonal line:
+        # check acute diagonal line:
         tempLine = list(np.diag(board[::-1]))
         if np.count_nonzero(np.diag(board[::-1]) == 16) == 1:
             tempLine.remove(16)
             if qutil.matchingPropertyExists(tempLine):
                     numLines += 1
         
-        #no winning line found
+        # no winning line found
         return numLines
