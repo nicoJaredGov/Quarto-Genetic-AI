@@ -41,7 +41,7 @@ class RandomQuartoAgent(GenericQuartoAgent):
 # NegaMax with Alpha-Beta pruning   
 class NegamaxAgent(GenericQuartoAgent):
 
-    def __init__(self, depth, searchWindow) -> None:
+    def __init__(self, depth, searchWindow=128) -> None:
         super().__init__()
         self.depth = depth
         self.searchWindow = searchWindow
@@ -88,7 +88,7 @@ class NegamaxAgent(GenericQuartoAgent):
             #switch move indices to match format: (position, nextPiece)
             move = (move[1],move[0])
 
-            print("\ndepth:", depth,"move:", move)
+            #print("\ndepth:", depth,"move:", move)
             # simulate move
             row, col = qutil.get2dCoords(move[0])
             board[row][col] = currentPiece
@@ -108,7 +108,7 @@ class NegamaxAgent(GenericQuartoAgent):
             availablePositions.add(move[0])
             availableNextPieces.add(move[1])
 
-            print(f"score: {cur}  a: {alpha}  b: {beta}")
+            #print(f"score: {cur}  a: {alpha}  b: {beta}")
             if alpha > beta:
                 availableNextPieces.discard(16)
                 return alpha, bestMove
