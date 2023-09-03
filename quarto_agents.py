@@ -3,6 +3,7 @@ from typing import Any
 from numpy import random
 import numpy as np
 import itertools
+import pandas as pd
 import quarto_util as qutil
 
 class GenericQuartoAgent(ABC):
@@ -41,10 +42,15 @@ class RandomQuartoAgent(GenericQuartoAgent):
 # NegaMax with Alpha-Beta pruning   
 class NegamaxAgent(GenericQuartoAgent):
 
-    def __init__(self, depth, searchWindow=128) -> None:
+    def __init__(self, depth,  transposition: None, searchWindow=128) -> None:
         super().__init__()
         self.depth = depth
         self.searchWindow = searchWindow
+        if transposition is not None:
+            self.hit = 0
+            self.total = 0
+            self.tableFileName = transposition
+            self.table = pd.read_pickle(f'tables/{transposition}.pkl')
 
     # Only used in debugging
     def makeFirstMove(self, quartoGameState):
@@ -60,11 +66,18 @@ class NegamaxAgent(GenericQuartoAgent):
     
     def alphaBeta(self, quartoGameState, depth, alpha, beta):
         board, currentPiece, availableNextPieces, availablePositions = quartoGameState
+        encoding = qutil.encodeBoard(board)
+        self.total += 1
 
         if qutil.isGameOver(board):
             return -np.inf, (16,16)
         if depth == 0 or len(availablePositions) == 0:
             return self.evaluation(board), (16,16)
+        #check transposition table
+        if encoding in self.table.encoding.values:
+            self.hit += 1
+            row = self.table[self.table["encoding"] == encoding].values[0]
+            return row[1], (row[2],row[3])
         
         if len(availableNextPieces) == 0:
             availableNextPieces.add(16)
@@ -118,8 +131,6 @@ class NegamaxAgent(GenericQuartoAgent):
     
     # Counts how many lines of three pieces with an identical property
     def evaluation(self, board):
-        # can check in transposition table here
-
         tempLine = None
         numLines = 0
 
@@ -154,3 +165,7 @@ class NegamaxAgent(GenericQuartoAgent):
         
         # no winning line found
         return numLines
+    
+    def displayTranspositionMetrics(self):
+        print("hit rate: ", self.hit)
+        self.table.info()
