@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 
 def encodeBoard(board_array):
     encoding = ""
@@ -65,3 +66,15 @@ def isGameOver(board):
     
     # no winning line found
     return False
+
+# transposition table functions
+def createTable(file_name: str):
+    df = pd.DataFrame(columns=['encoding', 'evaluation', 'movePos', 'movePiece'])
+
+    df['encoding'] = df['encoding'].astype('str')
+    df['evaluation'] = df['evaluation'].astype('int8')
+    df['movePos'] = df['movePos'].astype('int8')
+    df['movePiece'] = df['movePiece'].astype('int8')
+
+    df.to_pickle(f'../tables/{file_name}.pkl')
+
