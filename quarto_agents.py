@@ -46,10 +46,11 @@ class NegamaxAgent(GenericQuartoAgent):
         super().__init__()
         self.depth = depth
         self.searchWindow = searchWindow
+
+        self.tableFileName = transposition
         if transposition is not None:
             self.hit = 0
             self.total = 0
-            self.tableFileName = transposition
             self.table = pd.read_pickle(f'tables/{transposition}.pkl')
 
     # Only used in debugging
@@ -74,11 +75,12 @@ class NegamaxAgent(GenericQuartoAgent):
         if depth == 0 or len(availablePositions) == 0:
             return self.evaluation(board), (16,16)
         #check transposition table
-        if encoding in self.table.encoding.values:
-            self.hit += 1
-            row = self.table[self.table["encoding"] == encoding].values[0]
-            return row[1], (row[2],row[3])
-        
+        if self.tableFileName is not None:
+            if encoding in self.table.encoding.values:
+                self.hit += 1
+                row = self.table[self.table["encoding"] == encoding].values[0]
+                return row[1], (row[2],row[3])
+            
         if len(availableNextPieces) == 0:
             availableNextPieces.add(16)
 
@@ -123,9 +125,13 @@ class NegamaxAgent(GenericQuartoAgent):
 
             #print(f"score: {cur}  a: {alpha}  b: {beta}")
             if alpha > beta:
+                if self.tableFileName is not None:
+                    self.updateTable([encoding,maxScore,bestMove[0],bestMove[1]])
                 availableNextPieces.discard(16)
                 return alpha, bestMove
 
+        if self.tableFileName is not None:
+            self.updateTable([encoding,maxScore,bestMove[0],bestMove[1]])
         availableNextPieces.discard(16)        
         return maxScore, bestMove
     
@@ -166,6 +172,18 @@ class NegamaxAgent(GenericQuartoAgent):
         # no winning line found
         return numLines
     
+    def updateTable(self, record):
+        row = {
+            'encoding': record[0],
+            'evaluation': record[1],
+            'movePos': record[2],
+            'movePiece': record[3]
+        }
+        self.table = self.table.append(row, ignore_index=True)
+    
+    def saveTable(self):
+        self.table.to_pickle(f'tables/{self.tableFileName}.pkl')
+
     def displayTranspositionMetrics(self):
         print("hit rate: ", self.hit)
         self.table.info()
