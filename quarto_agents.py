@@ -42,7 +42,7 @@ class RandomQuartoAgent(GenericQuartoAgent):
 # NegaMax with Alpha-Beta pruning   
 class NegamaxAgent(GenericQuartoAgent):
 
-    def __init__(self, depth,  transposition: None, searchWindow=128) -> None:
+    def __init__(self, depth,  transposition=None, searchWindow=128) -> None:
         super().__init__()
         self.depth = depth
         self.searchWindow = searchWindow
