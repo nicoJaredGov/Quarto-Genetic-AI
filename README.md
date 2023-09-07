@@ -36,6 +36,12 @@ ____
 For pieces, 16 denotes the null piece which is assigned to the current piece when there isn't a current piece selected.
 In the case of board positions, 16 denotes an empty cell. The reason for using 0 to 15 to represent the pieces is to get the 4-bit piece representation.
 
+#### Encoding
+
+A board state encoder and decoder are provided with the simulator. The encoding is a 34 character long string compromising 17 numbers. 
+Single digit numbers are encoded as "0n" and double digit numbers are written normally. The first 16 numbers are the board encoded row-wise linear indexing.
+The last number is the current piece to place at that state of the board.
+
 #### Playing a game
 
 To play a game, you need to pick two agents that match the superclass of a generic Quarto agent and then call the play method. See below:
