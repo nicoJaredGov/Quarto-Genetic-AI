@@ -76,5 +76,5 @@ def createTable(file_name: str):
     df['movePos'] = df['movePos'].astype('int8')
     df['movePiece'] = df['movePiece'].astype('int8')
 
-    df.to_pickle(f'../tables/{file_name}.pkl')
+    df.to_pickle(f'tables/{file_name}.pkl')
 

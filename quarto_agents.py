@@ -47,10 +47,10 @@ class NegamaxAgent(GenericQuartoAgent):
         self.depth = depth
         self.searchWindow = searchWindow
 
+        self.hit = 0
+        self.total = 0
         self.tableFileName = transposition
         if transposition is not None:
-            self.hit = 0
-            self.total = 0
             self.table = pd.read_pickle(f'tables/{transposition}.pkl')
 
     # Only used in debugging
@@ -69,7 +69,7 @@ class NegamaxAgent(GenericQuartoAgent):
         board, currentPiece, availableNextPieces, availablePositions = quartoGameState
         encoding = qutil.encodeBoard(board)
         self.total += 1
-
+        
         if qutil.isGameOver(board):
             return -np.inf, (16,16)
         if depth == 0 or len(availablePositions) == 0:
@@ -173,6 +173,8 @@ class NegamaxAgent(GenericQuartoAgent):
         return numLines
     
     def updateTable(self, record):
+        if record[1] == np.inf: record[1] = 10
+        if record[1] == -np.inf: record[1] = -10
         row = {
             'encoding': record[0],
             'evaluation': record[1],
@@ -180,10 +182,19 @@ class NegamaxAgent(GenericQuartoAgent):
             'movePiece': record[3]
         }
         self.table = self.table.append(row, ignore_index=True)
+
+        self.table['encoding'] = self.table['encoding'].astype('str')
+        self.table['evaluation'] = self.table['evaluation'].astype('int8')
+        self.table['movePos'] = self.table['movePos'].astype('int8')
+        self.table['movePiece'] = self.table['movePiece'].astype('int8')
     
     def saveTable(self):
         self.table.to_pickle(f'tables/{self.tableFileName}.pkl')
 
     def displayTranspositionMetrics(self):
-        print("hit rate: ", self.hit)
-        self.table.info()
+        if self.tableFileName is None:
+            print("No transposition table was loaded. Cannot display any transposition metrics.")
+        else:
+            print("\nhit rate: ", self.hit, "\n")
+            print(self.table.info())
+            print("\n")
