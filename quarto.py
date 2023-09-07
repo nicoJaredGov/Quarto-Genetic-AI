@@ -39,25 +39,9 @@ class QuartoGame:
         self.availablePieces = set(range(16))
         self.availablePositions = set(range(16))
         self.moveHistory = list()
-
-    # Experimental method to allow any board to be loaded and simulated from that point
-    # NOTE There is no game history as a result. Only history after the board is loaded can be recorded.
-    def setBoard(self, board_encoding):
-        board_array = [int(board_encoding[i]+board_encoding[i+1]) for i in range(0,len(board_encoding),2)]
-
-        #determine available positions
-        self.availablePositions = set([i for i, e in enumerate(board_array) if e == 16])
-
-        #determine which pieces are still available
-        self.availablePieces = set(board_array)
-        if 16 in self.availablePieces:
-            self.availablePieces.remove(16)
-        self.availablePieces = set(range(16)) - self.availablePieces
-
-        self.board = np.reshape(board_array, (4,4))
     
     def encodeBoard(self):
-        return qutil.encodeBoard(self.board)
+        return qutil.encodeBoard(self.board, self.currentPiece)
 
     def showPlayerName(self, turn):
         #turn
@@ -239,8 +223,6 @@ class QuartoGame:
         else:
             print("\nDraw!")
             
-        
-    
     def playRandomFirst(self):      
         turn = True #player 1 - True, player 2 - False
         if self.gui_mode: self.showPlayerName(turn)

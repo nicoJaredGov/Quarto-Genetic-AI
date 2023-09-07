@@ -67,7 +67,7 @@ class NegamaxAgent(GenericQuartoAgent):
     
     def alphaBeta(self, quartoGameState, depth, alpha, beta):
         board, currentPiece, availableNextPieces, availablePositions = quartoGameState
-        encoding = qutil.encodeBoard(board)
+        encoding = qutil.encodeBoard(board, currentPiece)
         self.total += 1
         
         if qutil.isGameOver(board):

@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-def encodeBoard(board_array):
+def encodeBoard(board_array, current_piece):
     encoding = ""
     for i in range(4):
         for j in range(4):
@@ -11,13 +11,20 @@ def encodeBoard(board_array):
             else:
                 encoding += str(num)
     
+    if current_piece <= 9:
+        encoding += "0"+str(current_piece)
+    else:
+        encoding += str(current_piece)
+        
     return encoding
     
 def decodeBoard(encoding):
-    board_array = [int(encoding[i]+encoding[i+1]) for i in range(0,len(encoding),2)]
+    board_array = [int(encoding[i]+encoding[i+1]) for i in range(0,len(encoding)-2,2)]
     board_array = np.reshape(board_array, (4,4))
 
-    return board_array
+    current_piece = int(encoding[-2:])
+
+    return board_array, current_piece
 
 def get2dCoords(ind):
     assert ind >= 0 and ind < 16, "Invalid linear index. Should be from 0 - 15 inclusive."
