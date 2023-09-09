@@ -42,7 +42,7 @@ class RandomQuartoAgent(GenericQuartoAgent):
 # NegaMax with Alpha-Beta pruning   
 class NegamaxAgent(GenericQuartoAgent):
 
-    def __init__(self, depth,  transposition=None, searchWindow=128) -> None:
+    def __init__(self, depth, transposition=None, searchWindow=128) -> None:
         super().__init__()
         self.depth = depth
         self.searchWindow = searchWindow
@@ -125,12 +125,12 @@ class NegamaxAgent(GenericQuartoAgent):
 
             #print(f"score: {cur}  a: {alpha}  b: {beta}")
             if alpha > beta:
-                if self.tableFileName is not None:
+                if self.tableFileName is not None and depth==self.depth:
                     self.updateTable([encoding,maxScore,bestMove[0],bestMove[1]])
                 availableNextPieces.discard(16)
                 return alpha, bestMove
 
-        if self.tableFileName is not None:
+        if self.tableFileName is not None and depth==self.depth:
             self.updateTable([encoding,maxScore,bestMove[0],bestMove[1]])
         availableNextPieces.discard(16)        
         return maxScore, bestMove
@@ -195,6 +195,9 @@ class NegamaxAgent(GenericQuartoAgent):
         if self.tableFileName is None:
             print("No transposition table was loaded. Cannot display any transposition metrics.")
         else:
-            print("\nhit rate: ", self.hit, "\n")
+            print("\nnum hits: ", self.hit, "")
+            print("num total: ", self.total, "")
+            if self.total != 0:
+                print(f"hit rate: {round((self.hit/self.total)*100,2)} %\n")
             print(self.table.info())
             print("\n")
