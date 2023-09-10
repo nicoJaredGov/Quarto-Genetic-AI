@@ -1,5 +1,6 @@
 quarto-sim.ipynb
 /.vscode
 /__pycache__
+quarto_agents/__pycache__
 ideas.txt
 tests.py
