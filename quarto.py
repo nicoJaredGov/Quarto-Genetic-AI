@@ -1,6 +1,6 @@
 import numpy as np
 import quarto_util as qutil
-import agents.generic_quarto_agent as qagents
+import quarto_agents.generic_quarto_agent as qagents
 
 class QuartoGame:
     def __init__(self, name1, agent1: qagents.GenericQuartoAgent, name2, agent2: qagents.GenericQuartoAgent, gui_mode=True, bin_mode=False):

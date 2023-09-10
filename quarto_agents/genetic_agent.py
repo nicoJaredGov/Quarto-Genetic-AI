@@ -1,4 +1,4 @@
-from agents.generic_quarto_agent import GenericQuartoAgent
+from quarto_agents.generic_quarto_agent import GenericQuartoAgent
 
 class GeneticMinmaxAgent(GenericQuartoAgent):
 

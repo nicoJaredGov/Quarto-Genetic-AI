@@ -3,7 +3,7 @@ from tkinter import font
 from PIL import ImageTk, Image
 
 from quarto import *
-import agents
+import quarto_agents
 
 class QuartoGUI(tk.Tk):
     def __init__(self, game):
@@ -133,7 +133,7 @@ class QuartoGUI(tk.Tk):
 
 def main():
     """Create the game's board and run its main loop."""
-    game = QuartoGame("Player 1", agents.HumanPlayer(), "Player 2", agents.HumanPlayer(), gui_mode=True, bin_mode=False)
+    game = QuartoGame("Player 1", quarto_agents.HumanPlayer(), "Player 2", quarto_agents.HumanPlayer(), gui_mode=True, bin_mode=False)
     gui = QuartoGUI(game)
     gui.mainloop()
 
