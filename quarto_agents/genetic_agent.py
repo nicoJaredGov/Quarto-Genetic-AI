@@ -23,19 +23,49 @@ class GeneticMinmaxAgent(GenericQuartoAgent):
     
     def makeMove(self, quartoGameState):
         maxScore, (position, nextPiece) = 16, (16,16)
-
-        #initialize reservation tree
-        currentBoardEncoding = qutil.encodeBoard(quartoGameState[0], quartoGameState[1])
-        self.reservationTree = ReservationTree(currentBoardEncoding)
-
         print(f"Genetic agent placed piece at cell {position} and nextPiece is {nextPiece}")
         print("maxEval: ",maxScore)
         return position, nextPiece
     
-    def createChromosomes(self, quartoGameState):
-        positions = set(range(16))
-        pieces = set(range(16)) 
+    #Each move consists of 4 consecutive characters in the chromosome - 2 for place and 2 for next piece
+    #movePath is defined as a list of tuples which represent moves
+    def encodeChromosome(self, movePath):
+        encoding = ""
 
+        for move in movePath:
+            movePos = move[0]
+            movePiece = move[1]
+
+            if movePos <= 9:
+                encoding += "0"+str(movePos)
+            else:
+                encoding += str(movePos)
+        
+            if movePiece <= 9:
+                encoding += "0"+str(movePiece)
+            else:
+                encoding += str(movePiece)
+            
+        return encoding
+
+    def decodeChromosome(self, chromosome):
+        pass
+    
+    def createChromosome(self, quartoGameState):
+        pass
+         
+    def generateSolution(self, quartoGameState):
+        board, currentPiece, availableNextPieces, availablePositions = quartoGameState
+        currentBoardEncoding = qutil.encodeBoard(board, currentPiece)
+
+        #initialize reservation tree
+        self.reservationTree = ReservationTree(currentBoardEncoding)
+        
+        #randomize initial population
+        currentPopulation = []
+
+
+        
     # Counts how many lines of three pieces with an identical property
     def evaluation(self, board):
         tempLine = None
