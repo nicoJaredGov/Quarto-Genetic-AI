@@ -7,7 +7,7 @@ from random import sample
 
 class GeneticMinmaxAgent(GenericQuartoAgent):
 
-    def __init__(self, maxGenerations, crossoverRate, mutationRate, initialPopulationSize, maxPopulationSize) -> None:
+    def __init__(self, maxGenerations=2, crossoverRate=0.5, mutationRate=0.1, initialPopulationSize=3, maxPopulationSize=10) -> None:
         super().__init__()
 
         #hyperparameters
@@ -90,7 +90,7 @@ class GeneticMinmaxAgent(GenericQuartoAgent):
 
             myTurn = not myTurn
 
-        return newChromosome, evaluation
+        return self.encodeChromosome(newChromosome), evaluation
          
     def generateSolution(self, quartoGameState):
         
@@ -99,10 +99,11 @@ class GeneticMinmaxAgent(GenericQuartoAgent):
         self.reservationTree = ReservationTree(currentBoardEncoding)
         
         #randomize initial population
-        currentPopulation = []
+        currentPopulation = dict()
+        for i in range(self.initialPopulationSize):
+            chromosome, evaluation = self.createChromosome(quartoGameState)
+            currentPopulation[chromosome] = evaluation
 
-
-        
     # Counts how many lines of three pieces with an identical property
     def evaluation(self, board):
         tempLine = None
