@@ -49,7 +49,9 @@ class GeneticMinmaxAgent(GenericQuartoAgent):
         return encoding
 
     def decodeChromosome(self, chromosome):
-        pass
+        movePath = [(int(chromosome[i]+chromosome[i+1]),int(chromosome[i+2]+chromosome[i+3])) for i in range(0,len(chromosome)-3,4)]
+
+        return movePath
     
     def createChromosome(self, quartoGameState):
         pass
