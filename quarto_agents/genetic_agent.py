@@ -2,6 +2,8 @@ from quarto_agents.generic_quarto_agent import GenericQuartoAgent
 import quarto_util as qutil
 import numpy as np
 from bigtree.node.node import Node
+from copy import deepcopy
+from random import sample
 
 class GeneticMinmaxAgent(GenericQuartoAgent):
 
@@ -54,13 +56,46 @@ class GeneticMinmaxAgent(GenericQuartoAgent):
         return movePath
     
     def createChromosome(self, quartoGameState):
-        pass
+        board, currentPiece, availableNextPieces, availablePositions = quartoGameState
+        tempNextPieces = availableNextPieces.copy()
+        tempPositions = availablePositions.copy()
+        tempBoard = deepcopy(board)
+        tempCurrentPiece = currentPiece
+
+        myTurn = True
+        newChromosome = list()
+        evaluation = 0
+        while len(tempPositions) > 0:
+            if len(tempNextPieces) == 0:
+                tempNextPieces.add(16)
+
+            #generate random move
+            randomPos = sample(tempPositions, 1)[0]
+            randomPiece = sample(tempNextPieces, 1)[0]
+            tempPositions.remove(randomPos)
+            tempNextPieces.remove(randomPiece)
+
+            #add random move to new chromosome
+            newChromosome.append((randomPos, randomPiece))
+
+            #update temporary board and temporary piece
+            row, col = qutil.get2dCoords(randomPos)
+            tempBoard[row][col] = tempCurrentPiece
+            tempCurrentPiece = randomPiece
+
+            if qutil.isGameOver(tempBoard):
+                if myTurn: evaluation = 10
+                else: evaluation = -10
+                break
+
+            myTurn = not myTurn
+
+        return newChromosome, evaluation
          
     def generateSolution(self, quartoGameState):
-        board, currentPiece, availableNextPieces, availablePositions = quartoGameState
-        currentBoardEncoding = qutil.encodeBoard(board, currentPiece)
-
+        
         #initialize reservation tree
+        currentBoardEncoding = qutil.encodeBoard(quartoGameState[0], quartoGameState[1])
         self.reservationTree = ReservationTree(currentBoardEncoding)
         
         #randomize initial population
