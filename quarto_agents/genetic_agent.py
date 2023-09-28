@@ -111,7 +111,7 @@ class ReservationTree():
         self.rootNode = Node("root", value=-10, move=(16,16))
 
     def showTree(self):
-        self.rootNode.show(attr_list=["value", "move"])
+        self.rootNode.show(attr_list=["value"])
 
     #updates node values using minmax along a path from leaf to root
     def minmax(self, leaf):
@@ -157,10 +157,10 @@ class ReservationTree():
 
         for m in range(0,len(movePath)):
             if m == len(movePath)-1: #leaf node
-                current = Node(encoding[0:lastIndex+4*(m+1)], value=leafEvaluation, move=movePath[m], parent=current)
+                current = Node(encoding[0:lastIndex+4*(m+1)], value=leafEvaluation, parent=current)
                 self.minmax(current)
             else:
-                current = Node(encoding[0:lastIndex+4*(m+1)], value=-10, move=movePath[m], parent=current)
+                current = Node(encoding[0:lastIndex+4*(m+1)], value=-10, parent=current)
 
           
 
