@@ -95,58 +95,57 @@ class GeneticMinmaxAgent(GenericQuartoAgent):
     def generateSolution(self, quartoGameState):
         
         #initialize reservation tree
-        currentBoardEncoding = qutil.encodeBoard(quartoGameState[0], quartoGameState[1])
-        self.reservationTree = ReservationTree(currentBoardEncoding)
+        self.reservationTree = ReservationTree()
         
         #randomize initial population
         currentPopulation = dict()
         for i in range(self.initialPopulationSize):
             chromosome, evaluation = self.createChromosome(quartoGameState)
             currentPopulation[chromosome] = evaluation
-
-    # Counts how many lines of three pieces with an identical property
-    def evaluation(self, board):
-        tempLine = None
-        numLines = 0
-
-        for i in range(4):
-            # check horizontal lines
-            tempLine = list(board[i])
-            if np.count_nonzero(board[i] == 16) == 1:
-                tempLine.remove(16)
-                if qutil.matchingPropertyExists(tempLine):
-                    numLines += 1
-            
-            tempLine = list(board[:,i])
-            # check vertical lines
-            if np.count_nonzero(board[:,i] == 16) == 1:
-                tempLine.remove(16)
-                if qutil.matchingPropertyExists(tempLine):
-                    numLines += 1
-
-        # check obtuse diagonal line
-        tempLine = list(np.diag(board))
-        if np.count_nonzero(np.diag(board) == 16) == 1:
-            tempLine.remove(16)
-            if qutil.matchingPropertyExists(tempLine):
-                    numLines += 1
-            
-        # check acute diagonal line:
-        tempLine = list(np.diag(board[::-1]))
-        if np.count_nonzero(np.diag(board[::-1]) == 16) == 1:
-            tempLine.remove(16)
-            if qutil.matchingPropertyExists(tempLine):
-                    numLines += 1
-        
-        # no winning line found
-        return numLines
-
+        print(currentPopulation)
+        print(len(currentPopulation))
+        self.reservationTree.showTree()
 class ReservationTree():
 
-     def __init__(self, rootEncoding) -> None:
-          self.nodes = list()
-          rootNode = Node(rootEncoding, value=-10)
-          self.nodes.append(rootNode)
+    def __init__(self) -> None:
+        self.rootNode = Node("root", value=-10, move=(16,16))
+
+    def showTree(self):
+        self.rootNode.show(attr_list=["value", "move"])
+
+    #Given a chromosome, finds the last node in the tree where it exists
+    def findChromosomeNode(self, encoding):
+        currentRoot = self.rootNode
+        lastIndex = 0
+
+        for i in range(4,len(encoding)+1,4):
+            stop = True
+
+            for node in currentRoot.children:
+                print("Test ", node.name, encoding[:i])
+                if node.name == encoding[:i]:
+                    currentRoot = node
+                    lastIndex = i
+                    stop = False
+                    break
+            
+            if stop: break
+            
+        return currentRoot, lastIndex
+    
+    #adds a new path of nodes from a chromosome encoding
+    def addPath(self, encoding, leafEvaluation):
+        
+        current, lastIndex = self.findChromosomeNode(encoding)
+        print(current.name, lastIndex)
+
+        movePath = [(int(encoding[i]+encoding[i+1]),int(encoding[i+2]+encoding[i+3])) for i in range(lastIndex,len(encoding)-3,4)]
+        print(movePath)
+        for m in range(0,len(movePath)):
+            if m == len(movePath)-1:
+                current = Node(encoding[0:lastIndex+4*(m+1)], value=leafEvaluation, move=movePath[m], parent=current)
+            else:
+                current = Node(encoding[0:lastIndex+4*(m+1)], value=-10, move=movePath[m], parent=current)
 
           
 
