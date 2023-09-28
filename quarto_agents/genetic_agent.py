@@ -113,6 +113,23 @@ class ReservationTree():
     def showTree(self):
         self.rootNode.show(attr_list=["value", "move"])
 
+    #updates node values using minmax along a path from leaf to root
+    def minmax(self, leaf):
+
+        #determine if MIN or MAX
+        maxTurn = (len(leaf.name)/4) % 2 == 0
+
+        #recurrently update node values
+        current = leaf
+        while current.parent != None:
+            current = current.parent
+            maxTurn = not maxTurn
+            
+            if maxTurn:
+                current.value = np.max([i.value for i in current.children])
+            else:
+                current.value = np.min([i.value for i in current.children])
+            
     #Given a chromosome, finds the last node in the tree where it exists
     def findChromosomeNode(self, encoding):
         currentRoot = self.rootNode
@@ -122,7 +139,6 @@ class ReservationTree():
             stop = True
 
             for node in currentRoot.children:
-                print("Test ", node.name, encoding[:i])
                 if node.name == encoding[:i]:
                     currentRoot = node
                     lastIndex = i
@@ -137,13 +153,12 @@ class ReservationTree():
     def addPath(self, encoding, leafEvaluation):
         
         current, lastIndex = self.findChromosomeNode(encoding)
-        print(current.name, lastIndex)
-
         movePath = [(int(encoding[i]+encoding[i+1]),int(encoding[i+2]+encoding[i+3])) for i in range(lastIndex,len(encoding)-3,4)]
-        print(movePath)
+
         for m in range(0,len(movePath)):
-            if m == len(movePath)-1:
+            if m == len(movePath)-1: #leaf node
                 current = Node(encoding[0:lastIndex+4*(m+1)], value=leafEvaluation, move=movePath[m], parent=current)
+                self.minmax(current)
             else:
                 current = Node(encoding[0:lastIndex+4*(m+1)], value=-10, move=movePath[m], parent=current)
 
