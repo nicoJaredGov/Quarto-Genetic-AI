@@ -97,11 +97,11 @@ class GeneticMinmaxAgent(GenericQuartoAgent):
         if len(chromosomeA) <= len(chromosomeB):
             numMoves = len(chromosomeA) // 4
             point = 4 * (numMoves // 2)
-            return chromosomeA[:point] + chromosomeB[point:]
         else:
             numMoves = len(chromosomeB) // 4
             point = 4 * (numMoves // 2)
-            return chromosomeA[:point] + chromosomeB[point:]
+
+        return chromosomeA[:point] + chromosomeB[point:]
     
     def mutation(self, chromosome):
         pass
