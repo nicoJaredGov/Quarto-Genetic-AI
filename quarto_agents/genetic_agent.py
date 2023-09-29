@@ -91,20 +91,32 @@ class GeneticMinmaxAgent(GenericQuartoAgent):
             myTurn = not myTurn
 
         return self.encodeChromosome(newChromosome), evaluation
-         
+
+    #one-point crossover
+    def crossover(self, chromosomeA, chromosomeB):
+        if len(chromosomeA) <= len(chromosomeB):
+            numMoves = len(chromosomeA) // 4
+            point = 4 * (numMoves // 2)
+            return chromosomeA[:point] + chromosomeB[point:]
+        else:
+            numMoves = len(chromosomeB) // 4
+            point = 4 * (numMoves // 2)
+            return chromosomeA[:point] + chromosomeB[point:]
+    
+    def mutation(self, chromosome):
+        pass
+
     def generateSolution(self, quartoGameState):
-        
         #initialize reservation tree
         self.reservationTree = ReservationTree()
         
         #randomize initial population
-        currentPopulation = dict()
+        fitness = dict()
         for i in range(self.initialPopulationSize):
-            chromosome, evaluation = self.createChromosome(quartoGameState)
-            currentPopulation[chromosome] = evaluation
-        print(currentPopulation)
-        print(len(currentPopulation))
-        self.reservationTree.showTree()
+            chromosome, leafEvaluation = self.createChromosome(quartoGameState)
+            fitness[chromosome] = 0
+            self.reservationTree.addPath(chromosome, leafEvaluation)
+
 class ReservationTree():
 
     def __init__(self) -> None:
