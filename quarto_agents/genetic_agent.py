@@ -104,7 +104,25 @@ class GeneticMinmaxAgent(GenericQuartoAgent):
         return chromosomeA[:point] + chromosomeB[point:]
     
     def mutation(self, chromosome):
-        pass
+        numMoves = len(chromosome) // 4
+        mutationPoint = np.random.randint(numMoves)
+        randomPos = np.random.randint(16)
+        randomPiece = np.random.randint(16)
+
+        move = ""
+        if randomPos <= 9:
+            move += "0"+str(randomPos)
+        else:
+            move += str(randomPos)
+
+        if randomPiece <= 9:
+            move += "0"+str(randomPiece)
+        else:
+            move += str(randomPiece)
+
+        mutatedChromosome = chromosome[:4*mutationPoint] + move + chromosome[4*mutationPoint+4:]
+        
+        return mutatedChromosome
 
     def generateSolution(self, quartoGameState):
         #initialize reservation tree
@@ -116,11 +134,15 @@ class GeneticMinmaxAgent(GenericQuartoAgent):
             chromosome, leafEvaluation = self.createChromosome(quartoGameState)
             fitness[chromosome] = 0
             self.reservationTree.addPath(chromosome, leafEvaluation)
+        
+        #print(fitness)
+        print(len(fitness))
+        self.reservationTree.showTree()
 
 class ReservationTree():
 
     def __init__(self) -> None:
-        self.rootNode = Node("root", value=-10, move=(16,16))
+        self.rootNode = Node("root", value=-10)
 
     def showTree(self):
         self.rootNode.show(attr_list=["value"])
