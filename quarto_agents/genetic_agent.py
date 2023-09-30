@@ -7,7 +7,7 @@ from random import sample
 
 class GeneticMinmaxAgent(GenericQuartoAgent):
 
-    def __init__(self, maxGenerations=2, crossoverRate=0.5, mutationRate=0.1, initialPopulationSize=3, maxPopulationSize=10) -> None:
+    def __init__(self, maxGenerations=2, crossoverRate=0.75, mutationRate=0.25, initialPopulationSize=3, maxPopulationSize=10) -> None:
         super().__init__()
 
         #hyperparameters
@@ -123,6 +123,27 @@ class GeneticMinmaxAgent(GenericQuartoAgent):
         mutatedChromosome = chromosome[:4*mutationPoint] + move + chromosome[4*mutationPoint+4:]
         
         return mutatedChromosome
+    
+    #evaluate chromosome leaf node
+    def evaluate(self, chromosome, quartoGameState):
+        movePath = [(int(chromosome[i]+chromosome[i+1]),int(chromosome[i+2]+chromosome[i+3])) for i in range(0,len(chromosome)-3,4)]
+
+        tempBoard = deepcopy(quartoGameState[0])
+        tempCurrentPiece = quartoGameState[1]
+        evaluation = 0
+
+        #update temporary board and temporary piece
+        for move in movePath:
+            row, col = qutil.get2dCoords(move[0])
+            tempBoard[row][col] = tempCurrentPiece
+            tempCurrentPiece = move[1]
+        
+        if qutil.isGameOver(tempBoard):
+            if len(movePath) % 2 == 0: evaluation = -10
+            else: evaluation = 10
+    
+        return evaluation
+
 
     def generateSolution(self, quartoGameState):
         #initialize reservation tree
@@ -134,8 +155,31 @@ class GeneticMinmaxAgent(GenericQuartoAgent):
             chromosome, leafEvaluation = self.createChromosome(quartoGameState)
             fitness[chromosome] = 0
             self.reservationTree.addPath(chromosome, leafEvaluation)
-        
-        #print(fitness)
+
+        #perform crossover and mutation
+        parents = list(fitness.keys())
+        for i in range(self.maxPopulationSize - len(parents)):
+            #random parent selection
+            a, b = np.random.choice(parents, 2)
+            
+            #random mutation
+            if np.random.sample() < self.mutationRate:
+                mutatedChild = self.mutation(a)
+                fitness[mutatedChild] = 0
+                leafEvaluation = self.evaluate(mutatedChild, quartoGameState)
+                self.reservationTree.addPath(mutatedChild, leafEvaluation)
+                continue
+
+            if a == b: continue
+            
+            #crossover
+            if np.random.sample() < self.crossoverRate:
+                crossoverChild = self.crossover(a, b)
+                fitness[crossoverChild] = 0
+                leafEvaluation = self.evaluate(crossoverChild, quartoGameState)
+                self.reservationTree.addPath(crossoverChild, leafEvaluation)
+               
+        print(fitness)
         print(len(fitness))
         self.reservationTree.showTree()
 
