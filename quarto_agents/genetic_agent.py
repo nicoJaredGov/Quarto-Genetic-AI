@@ -124,6 +124,17 @@ class GeneticMinmaxAgent(GenericQuartoAgent):
         
         return mutatedChromosome
     
+    def computeFitness(self, chromosome, quartoGameState):
+        #check if chromosome is valid
+        positions = [int(chromosome[i:i+2]) for i in range(0,len(chromosome),4)] + list(quartoGameState[3])
+        nextPieces = [int(chromosome[i:i+2]) for i in range(2,len(chromosome),4)] + list(quartoGameState[2])
+        if len(set(positions)) < len(positions):
+            return 0
+        if len(set(nextPieces)) < len(nextPieces):
+            return 0
+        
+
+
     #evaluate chromosome leaf node
     def evaluate(self, chromosome, quartoGameState):
         movePath = [(int(chromosome[i]+chromosome[i+1]),int(chromosome[i+2]+chromosome[i+3])) for i in range(0,len(chromosome)-3,4)]
