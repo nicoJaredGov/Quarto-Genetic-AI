@@ -126,8 +126,8 @@ class GeneticMinmaxAgent(GenericQuartoAgent):
     
     def computeFitness(self, chromosome, quartoGameState):
         #check if chromosome is valid
-        positions = [int(chromosome[i:i+2]) for i in range(0,len(chromosome),4)] + list(quartoGameState[3])
-        nextPieces = [int(chromosome[i:i+2]) for i in range(2,len(chromosome),4)] + list(quartoGameState[2])
+        positions = [int(chromosome[i:i+2]) for i in range(0,len(chromosome),4)] + list(set(range(16)) - quartoGameState[3])
+        nextPieces = [int(chromosome[i:i+2]) for i in range(2,len(chromosome),4)] + list(set(range(16)) - quartoGameState[2])
         if len(set(positions)) < len(positions):
             return 0
         if len(set(nextPieces)) < len(nextPieces):
