@@ -124,17 +124,17 @@ class GeneticMinmaxAgent(GenericQuartoAgent):
         
         return mutatedChromosome
     
-    def computeFitness(self, chromosome, quartoGameState):
+    def isValidChromosome(self, chromosome, quartoGameState):
         #check if chromosome is valid
         positions = [int(chromosome[i:i+2]) for i in range(0,len(chromosome),4)] + list(set(range(16)) - quartoGameState[3])
         nextPieces = [int(chromosome[i:i+2]) for i in range(2,len(chromosome),4)] + list(set(range(16)) - quartoGameState[2])
         if len(set(positions)) < len(positions):
-            return 0
+            return False
         if len(set(nextPieces)) < len(nextPieces):
-            return 0
+            return False
         
-
-
+        return True
+        
     #evaluate chromosome leaf node
     def evaluate(self, chromosome, quartoGameState):
         movePath = [(int(chromosome[i]+chromosome[i+1]),int(chromosome[i+2]+chromosome[i+3])) for i in range(0,len(chromosome)-3,4)]
@@ -177,8 +177,9 @@ class GeneticMinmaxAgent(GenericQuartoAgent):
             if np.random.sample() < self.mutationRate:
                 mutatedChild = self.mutation(a)
                 fitness[mutatedChild] = 0
-                leafEvaluation = self.evaluate(mutatedChild, quartoGameState)
-                self.reservationTree.addPath(mutatedChild, leafEvaluation)
+                if self.isValidChromosome(mutatedChild, quartoGameState):
+                    leafEvaluation = self.evaluate(mutatedChild, quartoGameState)
+                    self.reservationTree.addPath(mutatedChild, leafEvaluation)
                 continue
 
             if a == b: continue
@@ -187,8 +188,9 @@ class GeneticMinmaxAgent(GenericQuartoAgent):
             if np.random.sample() < self.crossoverRate:
                 crossoverChild = self.crossover(a, b)
                 fitness[crossoverChild] = 0
-                leafEvaluation = self.evaluate(crossoverChild, quartoGameState)
-                self.reservationTree.addPath(crossoverChild, leafEvaluation)
+                if self.isValidChromosome(crossoverChild, quartoGameState):
+                    leafEvaluation = self.evaluate(crossoverChild, quartoGameState)
+                    self.reservationTree.addPath(crossoverChild, leafEvaluation)
                
         print(fitness)
         print(len(fitness))
