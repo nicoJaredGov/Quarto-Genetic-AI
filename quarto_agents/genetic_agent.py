@@ -155,7 +155,6 @@ class GeneticMinmaxAgent(GenericQuartoAgent):
     
         return evaluation
 
-
     def generateSolution(self, quartoGameState):
         #initialize reservation tree
         self.reservationTree = ReservationTree()
@@ -191,7 +190,10 @@ class GeneticMinmaxAgent(GenericQuartoAgent):
                 if self.isValidChromosome(crossoverChild, quartoGameState):
                     leafEvaluation = self.evaluate(crossoverChild, quartoGameState)
                     self.reservationTree.addPath(crossoverChild, leafEvaluation)
-               
+
+        #update fitness for all chromosomes in this generation
+
+        
         print(fitness)
         print(len(fitness))
         self.reservationTree.showTree()
@@ -206,7 +208,6 @@ class ReservationTree():
 
     #updates node values using minmax along a path from leaf to root
     def minmax(self, leaf):
-
         #determine if MIN or MAX
         maxTurn = (len(leaf.name)/4) % 2 == 0
 
@@ -242,7 +243,6 @@ class ReservationTree():
     
     #adds a new path of nodes from a chromosome encoding
     def addPath(self, encoding, leafEvaluation):
-        
         current, lastIndex = self.findChromosomeNode(encoding)
         movePath = [(int(encoding[i]+encoding[i+1]),int(encoding[i+2]+encoding[i+3])) for i in range(lastIndex,len(encoding)-3,4)]
 
@@ -252,6 +252,22 @@ class ReservationTree():
                 self.minmax(current)
             else:
                 current = Node(encoding[0:lastIndex+4*(m+1)], value=-10, parent=current)
+
+    def computeFitness(self, encoding):
+        currNode, _ = self.findChromosomeNode(encoding)
+        leafValue = currNode.value # type: ignore
+
+        while currNode is not None:
+            if currNode.parent == self.rootNode: 
+                currNode = currNode.parent 
+                break
+            if currNode.parent.value == leafValue: # type: ignore
+                currNode = currNode.parent
+            else:
+                break
+            
+        return self.rootNode.max_depth - currNode.depth + 1 # type: ignore
+
 
           
 
