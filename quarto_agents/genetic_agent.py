@@ -155,6 +155,7 @@ class GeneticMinmaxAgent(GenericQuartoAgent):
     
         return evaluation
 
+    #main Genetic Minimax implementation
     def generateSolution(self, quartoGameState):
         #initialize reservation tree
         self.reservationTree = ReservationTree()
@@ -166,41 +167,53 @@ class GeneticMinmaxAgent(GenericQuartoAgent):
             fitness[chromosome] = 0
             self.reservationTree.addPath(chromosome, leafEvaluation)
 
-        #perform crossover and mutation
-        parents = list(fitness.keys())
-        for i in range(self.maxPopulationSize - len(parents)):
-            #random parent selection
-            a, b = np.random.choice(parents, 2)
-            
-            #random mutation
-            if np.random.sample() < self.mutationRate:
-                mutatedChild = self.mutation(a)
+        for gen in range(self.maxGenerations):
+            #perform crossover and mutation
+            parents = list(fitness.keys())
 
-                if self.isValidChromosome(mutatedChild, quartoGameState):
-                    fitness[mutatedChild] = 0
-                    leafEvaluation = self.evaluate(mutatedChild, quartoGameState)
-                    self.reservationTree.addPath(mutatedChild, leafEvaluation)
-
-                continue
-
-            if a == b: continue
-            
-            #crossover
-            if np.random.sample() < self.crossoverRate:
-                crossoverChild = self.crossover(a, b)
+            for i in range(self.maxPopulationSize - len(parents)):
+                #random parent selection
+                a, b = np.random.choice(parents, 2)
                 
-                if self.isValidChromosome(crossoverChild, quartoGameState):
-                    fitness[crossoverChild] = 0
-                    leafEvaluation = self.evaluate(crossoverChild, quartoGameState)
-                    self.reservationTree.addPath(crossoverChild, leafEvaluation)
+                #random mutation
+                if np.random.sample() < self.mutationRate:
+                    mutatedChild = self.mutation(a)
 
-        #update fitness for all chromosomes in this generation
-        for c in fitness.keys():
-            fitness[c] = self.reservationTree.computeFitness(c)
-        
-        print(fitness)
-        print(len(fitness))
-        self.reservationTree.showTree()
+                    if self.isValidChromosome(mutatedChild, quartoGameState):
+                        fitness[mutatedChild] = 0
+                        leafEvaluation = self.evaluate(mutatedChild, quartoGameState)
+                        self.reservationTree.addPath(mutatedChild, leafEvaluation)
+
+                    continue
+
+                if a == b: continue
+                
+                #crossover
+                if np.random.sample() < self.crossoverRate:
+                    crossoverChild = self.crossover(a, b)
+                    
+                    if self.isValidChromosome(crossoverChild, quartoGameState):
+                        fitness[crossoverChild] = 0
+                        leafEvaluation = self.evaluate(crossoverChild, quartoGameState)
+                        self.reservationTree.addPath(crossoverChild, leafEvaluation)
+
+            #update fitness for all chromosomes in this generation
+            for c in fitness.keys():
+                fitness[c] = self.reservationTree.computeFitness(c)
+            
+            print(fitness)
+            print(len(fitness))
+            self.reservationTree.showTree()
+
+            #set next generation's initial population as the top N chromosomes of this generation
+            tempCounter = 0
+            tempFitness = fitness.copy()
+            fitness.clear()
+            for chromosome, fitnessValue in reversed(sorted(tempFitness.items(),key=lambda x: (x[1],x[0]))):
+                fitness[chromosome] = fitnessValue
+                tempCounter += 1
+                if tempCounter >= self.initialPopulationSize:
+                    break
 
 class ReservationTree():
 
