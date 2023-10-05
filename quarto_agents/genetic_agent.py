@@ -7,7 +7,7 @@ from random import sample
 
 class GeneticMinmaxAgent(GenericQuartoAgent):
 
-    def __init__(self, maxGenerations=2, crossoverRate=0.75, mutationRate=0.25, initialPopulationSize=3, maxPopulationSize=10) -> None:
+    def __init__(self, maxGenerations=2, crossoverRate=0.8, mutationRate=0.3, initialPopulationSize=3, maxPopulationSize=10) -> None:
         super().__init__()
 
         #hyperparameters
@@ -175,10 +175,12 @@ class GeneticMinmaxAgent(GenericQuartoAgent):
             #random mutation
             if np.random.sample() < self.mutationRate:
                 mutatedChild = self.mutation(a)
-                fitness[mutatedChild] = 0
+
                 if self.isValidChromosome(mutatedChild, quartoGameState):
+                    fitness[mutatedChild] = 0
                     leafEvaluation = self.evaluate(mutatedChild, quartoGameState)
                     self.reservationTree.addPath(mutatedChild, leafEvaluation)
+
                 continue
 
             if a == b: continue
@@ -186,13 +188,15 @@ class GeneticMinmaxAgent(GenericQuartoAgent):
             #crossover
             if np.random.sample() < self.crossoverRate:
                 crossoverChild = self.crossover(a, b)
-                fitness[crossoverChild] = 0
+                
                 if self.isValidChromosome(crossoverChild, quartoGameState):
+                    fitness[crossoverChild] = 0
                     leafEvaluation = self.evaluate(crossoverChild, quartoGameState)
                     self.reservationTree.addPath(crossoverChild, leafEvaluation)
 
         #update fitness for all chromosomes in this generation
-
+        for c in fitness.keys():
+            fitness[c] = self.reservationTree.computeFitness(c)
         
         print(fitness)
         print(len(fitness))
@@ -258,11 +262,10 @@ class ReservationTree():
         leafValue = currNode.value # type: ignore
 
         while currNode is not None:
-            if currNode.parent == self.rootNode: 
-                currNode = currNode.parent 
-                break
             if currNode.parent.value == leafValue: # type: ignore
                 currNode = currNode.parent
+                if currNode == self.rootNode: 
+                    break
             else:
                 break
             
