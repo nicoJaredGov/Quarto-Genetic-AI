@@ -24,9 +24,9 @@ class GeneticMinmaxAgent(GenericQuartoAgent):
         return nextPiece
     
     def makeMove(self, quartoGameState):
-        maxScore, (position, nextPiece) = 16, (16,16)
+        (position, nextPiece), eval = self.generateSolution(quartoGameState)
         print(f"Genetic agent placed piece at cell {position} and nextPiece is {nextPiece}")
-        print("maxEval: ",maxScore)
+        print("maxEval: ", eval)
         return position, nextPiece
     
     #Each move consists of 4 consecutive characters in the chromosome - 2 for place and 2 for next piece
@@ -167,6 +167,8 @@ class GeneticMinmaxAgent(GenericQuartoAgent):
             fitness[chromosome] = 0
             self.reservationTree.addPath(chromosome, leafEvaluation)
 
+        bestChromosome = ""
+        finalEvaluation = -1
         for gen in range(self.maxGenerations):
             #perform crossover and mutation
             parents = list(fitness.keys())
@@ -201,9 +203,6 @@ class GeneticMinmaxAgent(GenericQuartoAgent):
             for c in fitness.keys():
                 fitness[c] = self.reservationTree.computeFitness(c)
             
-            print(fitness)
-            print(len(fitness))
-            self.reservationTree.showTree()
 
             #set next generation's initial population as the top N chromosomes of this generation
             tempCounter = 0
@@ -214,6 +213,16 @@ class GeneticMinmaxAgent(GenericQuartoAgent):
                 tempCounter += 1
                 if tempCounter >= self.initialPopulationSize:
                     break
+
+                #get best chromosome
+                if tempCounter == 1:
+                    bestChromosome = chromosome
+                    finalEvaluation = fitnessValue
+
+        print("new fitness ", fitness)
+        self.reservationTree.showTree()
+        bestMove = (int(bestChromosome[0]+bestChromosome[1]),int(bestChromosome[2]+bestChromosome[3]))
+        return bestMove, finalEvaluation
 
 class ReservationTree():
 
