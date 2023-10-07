@@ -7,10 +7,11 @@ from random import sample
 
 class GeneticMinmaxAgent(GenericQuartoAgent):
 
-    def __init__(self, maxGenerations=2, crossoverRate=0.8, mutationRate=0.3, initialPopulationSize=3, maxPopulationSize=10) -> None:
+    def __init__(self, searchDepth=3, maxGenerations=2, crossoverRate=0.4, mutationRate=0.8, initialPopulationSize=3, maxPopulationSize=10) -> None:
         super().__init__()
 
         #hyperparameters
+        self.searchDepth = searchDepth
         self.maxGenerations = maxGenerations
         self.crossoverRate = crossoverRate
         self.mutationRate = mutationRate
@@ -28,6 +29,45 @@ class GeneticMinmaxAgent(GenericQuartoAgent):
         print(f"Genetic agent placed piece at cell {position} and nextPiece is {nextPiece}")
         print("maxEval: ", eval)
         return position, nextPiece
+    
+    # Counts how many lines of three pieces with an identical property
+    def lineEvaluation(self, board, turn: bool):
+        tempLine = None
+        numLines = 0
+
+        for i in range(4):
+            # check horizontal lines
+            tempLine = list(board[i])
+            if np.count_nonzero(board[i] == 16) == 1:
+                tempLine.remove(16)
+                if qutil.matchingPropertyExists(tempLine):
+                    numLines += 1
+            
+            tempLine = list(board[:,i])
+            # check vertical lines
+            if np.count_nonzero(board[:,i] == 16) == 1:
+                tempLine.remove(16)
+                if qutil.matchingPropertyExists(tempLine):
+                    numLines += 1
+
+        # check obtuse diagonal line
+        tempLine = list(np.diag(board))
+        if np.count_nonzero(np.diag(board) == 16) == 1:
+            tempLine.remove(16)
+            if qutil.matchingPropertyExists(tempLine):
+                    numLines += 1
+            
+        # check acute diagonal line:
+        tempLine = list(np.diag(board[::-1]))
+        if np.count_nonzero(np.diag(board[::-1]) == 16) == 1:
+            tempLine.remove(16)
+            if qutil.matchingPropertyExists(tempLine):
+                    numLines += 1
+        
+        if turn:
+            return numLines
+        else:
+            return -numLines
     
     #Each move consists of 4 consecutive characters in the chromosome - 2 for place and 2 for next piece
     #movePath is defined as a list of tuples which represent moves
@@ -63,9 +103,12 @@ class GeneticMinmaxAgent(GenericQuartoAgent):
         tempCurrentPiece = currentPiece
 
         myTurn = True
+        isGameOver = False
         newChromosome = list()
         evaluation = 0
-        while len(tempPositions) > 0:
+        for _ in range(self.searchDepth):
+            if len(tempPositions) <= 0:
+                break
             if len(tempNextPieces) == 0:
                 tempNextPieces.add(16)
 
@@ -83,12 +126,18 @@ class GeneticMinmaxAgent(GenericQuartoAgent):
             tempBoard[row][col] = tempCurrentPiece
             tempCurrentPiece = randomPiece
 
+            #case when either play wins at a given state
             if qutil.isGameOver(tempBoard):
+                isGameOver = True
                 if myTurn: evaluation = 10
                 else: evaluation = -10
                 break
 
             myTurn = not myTurn
+
+        #case when no player has won
+        if not isGameOver:
+            evaluation = self.lineEvaluation(tempBoard, not myTurn)
 
         return self.encodeChromosome(newChromosome), evaluation
 
@@ -96,31 +145,28 @@ class GeneticMinmaxAgent(GenericQuartoAgent):
     def crossover(self, chromosomeA, chromosomeB):
         if len(chromosomeA) <= len(chromosomeB):
             numMoves = len(chromosomeA) // 4
-            point = 4 * (numMoves // 2)
         else:
             numMoves = len(chromosomeB) // 4
-            point = 4 * (numMoves // 2)
 
-        return chromosomeA[:point] + chromosomeB[point:]
+        point = np.random.randint(1,numMoves)
+        return chromosomeA[:4*point] + chromosomeB[4*point:]
     
-    def mutation(self, chromosome):
-        numMoves = len(chromosome) // 4
+    def mutation(self, chromosome, quartoGameState):
+        numMoves = len(chromosome) // 2
         mutationPoint = np.random.randint(numMoves)
-        randomPos = np.random.randint(16)
-        randomPiece = np.random.randint(16)
+
+        if mutationPoint % 2 == 0: #move position
+            mutation = sample(quartoGameState[3], 1)[0] 
+        else: #move nextPiece
+            mutation = sample(quartoGameState[2], 1)[0]
 
         move = ""
-        if randomPos <= 9:
-            move += "0"+str(randomPos)
+        if mutation <= 9:
+            move += "0"+str(mutation)
         else:
-            move += str(randomPos)
+            move += str(mutation)
 
-        if randomPiece <= 9:
-            move += "0"+str(randomPiece)
-        else:
-            move += str(randomPiece)
-
-        mutatedChromosome = chromosome[:4*mutationPoint] + move + chromosome[4*mutationPoint+4:]
+        mutatedChromosome = chromosome[:2*mutationPoint] + move + chromosome[2*mutationPoint+2:]
         
         return mutatedChromosome
     
@@ -152,6 +198,8 @@ class GeneticMinmaxAgent(GenericQuartoAgent):
         if qutil.isGameOver(tempBoard):
             if len(movePath) % 2 == 0: evaluation = -10
             else: evaluation = 10
+        else:
+            evaluation = self.lineEvaluation(tempBoard, len(movePath) % 2 != 0)
     
         return evaluation
 
@@ -162,24 +210,28 @@ class GeneticMinmaxAgent(GenericQuartoAgent):
         
         #randomize initial population
         fitness = dict()
-        for i in range(self.initialPopulationSize):
+        for _ in range(self.initialPopulationSize):
             chromosome, leafEvaluation = self.createChromosome(quartoGameState)
             fitness[chromosome] = 0
             self.reservationTree.addPath(chromosome, leafEvaluation)
-
+        
+        #print("initial: ", fitness, len(fitness))
         bestChromosome = ""
         finalEvaluation = -1
-        for gen in range(self.maxGenerations):
+        for _ in range(self.maxGenerations):
             #perform crossover and mutation
-            parents = list(fitness.keys())
+            parents = fitness.keys()
 
-            for i in range(self.maxPopulationSize - len(parents)):
+            for _ in range(self.maxPopulationSize - len(parents)):
                 #random parent selection
-                a, b = np.random.choice(parents, 2)
+                a, b = sample(parents, 2)
                 
                 #random mutation
                 if np.random.sample() < self.mutationRate:
-                    mutatedChild = self.mutation(a)
+                    mutatedChild = self.mutation(a, quartoGameState)
+
+                    if len(mutatedChild) < 4*self.searchDepth:
+                        continue
 
                     if self.isValidChromosome(mutatedChild, quartoGameState):
                         fitness[mutatedChild] = 0
@@ -194,6 +246,9 @@ class GeneticMinmaxAgent(GenericQuartoAgent):
                 if np.random.sample() < self.crossoverRate:
                     crossoverChild = self.crossover(a, b)
                     
+                    if len(crossoverChild) < 4*self.searchDepth:
+                        continue
+
                     if self.isValidChromosome(crossoverChild, quartoGameState):
                         fitness[crossoverChild] = 0
                         leafEvaluation = self.evaluate(crossoverChild, quartoGameState)
@@ -203,12 +258,12 @@ class GeneticMinmaxAgent(GenericQuartoAgent):
             for c in fitness.keys():
                 fitness[c] = self.reservationTree.computeFitness(c)
             
-
+            print(len(fitness))
             #set next generation's initial population as the top N chromosomes of this generation
             tempCounter = 0
             tempFitness = fitness.copy()
             fitness.clear()
-            for chromosome, fitnessValue in reversed(sorted(tempFitness.items(),key=lambda x: (x[1],x[0]))):
+            for chromosome, fitnessValue in reversed(sorted(tempFitness.items(),key=lambda x: x[1])):
                 fitness[chromosome] = fitnessValue
                 tempCounter += 1
                 if tempCounter >= self.initialPopulationSize:
@@ -219,8 +274,8 @@ class GeneticMinmaxAgent(GenericQuartoAgent):
                     bestChromosome = chromosome
                     finalEvaluation = fitnessValue
 
-        print("new fitness ", fitness)
-        self.reservationTree.showTree()
+        #print("new fitness ", fitness)
+        #self.reservationTree.showTree()
         bestMove = (int(bestChromosome[0]+bestChromosome[1]),int(bestChromosome[2]+bestChromosome[3]))
         return bestMove, finalEvaluation
 
@@ -228,6 +283,7 @@ class ReservationTree():
 
     def __init__(self) -> None:
         self.rootNode = Node("root", value=-10)
+        self.leafNodes = dict()
 
     def showTree(self):
         self.rootNode.show(attr_list=["value"])
@@ -276,11 +332,12 @@ class ReservationTree():
             if m == len(movePath)-1: #leaf node
                 current = Node(encoding[0:lastIndex+4*(m+1)], value=leafEvaluation, parent=current)
                 self.minmax(current)
+                self.leafNodes[encoding] = current
             else:
                 current = Node(encoding[0:lastIndex+4*(m+1)], value=-10, parent=current)
 
     def computeFitness(self, encoding):
-        currNode, _ = self.findChromosomeNode(encoding)
+        currNode = self.leafNodes[encoding]
         leafValue = currNode.value # type: ignore
 
         while currNode is not None:
