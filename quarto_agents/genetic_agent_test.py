@@ -4,6 +4,7 @@ import numpy as np
 from bigtree.node.node import Node
 from copy import deepcopy
 from random import sample
+import time
 
 class GeneticMinmaxAgentTest(GenericQuartoAgent):
 
@@ -17,6 +18,7 @@ class GeneticMinmaxAgentTest(GenericQuartoAgent):
         self.mutationRate = mutationRate
         self.initialPopulationSize = initialPopulationSize
         self.maxPopulationSize = maxPopulationSize
+        self.fitness = dict()
 
 
     # Only used in debugging
@@ -156,7 +158,13 @@ class GeneticMinmaxAgentTest(GenericQuartoAgent):
     
     def mutation(self, chromosome, quartoGameState):
         numMoves = len(chromosome) // 2
-        mutationPoint = np.random.randint(numMoves)
+        positions = list(range(0,numMoves,2))
+        pieces = list(range(1,numMoves,2))
+
+        if np.random.sample() < 0.8:
+            mutationPoint = np.random.choice(positions)
+        else:
+            mutationPoint = np.random.choice(pieces)
 
         if mutationPoint % 2 == 0: #move position
             mutation = sample(quartoGameState[3], 1)[0] 
@@ -206,24 +214,41 @@ class GeneticMinmaxAgentTest(GenericQuartoAgent):
     
         return evaluation
 
+    #recursive function to update the fitness of the top N chromosomes
+    def computeFitness(self, node, evaluation, i):
+        if self.fitnessCounter >= self.initialPopulationSize:
+            return
+        if node.is_leaf:
+            self.fitness[node.name] = evaluation
+            self.fitnessCounter += 1
+            #print("ff ",self.fitnessCounter)
+        else:
+            for child in [n for n in node.children if n.value == evaluation]:
+                self.computeFitness(child, evaluation, i)
+
     #main Genetic Minimax implementation
     def generateSolution(self, quartoGameState):
         #initialize reservation tree
         self.reservationTree = ReservationTree()
-        
+  
         #randomize initial population
-        fitness = dict()
+        start_time = time.time()
+        self.fitness.clear()
         for _ in range(self.initialPopulationSize):
             chromosome, leafEvaluation = self.createChromosome(quartoGameState)
-            fitness[chromosome] = 0
+            self.fitness[chromosome] = 0
             self.reservationTree.addPath(chromosome, leafEvaluation)
+        end_time = time.time()
+        print(end_time - start_time, "seconds a")
         
-        #print("initial: ", fitness, len(fitness))
+        #print("initial: ", self.fitness, len(self.fitness))
+        print("initial: ", len(self.fitness))
         bestChromosome = ""
         finalEvaluation = -1
         for _ in range(self.maxGenerations):
+            start_time = time.time()
             #perform crossover and mutation
-            parents = fitness.keys()
+            parents = self.fitness.keys()
 
             for _ in range(self.maxPopulationSize - len(parents)):
                 #random parent selection
@@ -237,7 +262,7 @@ class GeneticMinmaxAgentTest(GenericQuartoAgent):
                         continue
 
                     if self.isValidChromosome(mutatedChild, quartoGameState):
-                        fitness[mutatedChild] = 0
+                        self.fitness[mutatedChild] = 0
                         leafEvaluation = self.evaluate(mutatedChild, quartoGameState)
                         self.reservationTree.addPath(mutatedChild, leafEvaluation)
 
@@ -253,35 +278,32 @@ class GeneticMinmaxAgentTest(GenericQuartoAgent):
                         continue
 
                     if self.isValidChromosome(crossoverChild, quartoGameState):
-                        fitness[crossoverChild] = 0
+                        self.fitness[crossoverChild] = 0
                         leafEvaluation = self.evaluate(crossoverChild, quartoGameState)
                         self.reservationTree.addPath(crossoverChild, leafEvaluation)
+            end_time = time.time()
+            print(end_time - start_time, "seconds b")
 
-            print(len(fitness))
+            print("genetic: ", len(self.fitness))
             #update fitness for all chromosomes in this generation
-            # possibleEvaluations = sorted([(child,child.value) for child in self.reservationTree.rootNode.children], key=lambda x: x[1])[::-1] # type: ignore
-            # for i in range(len(possibleEvaluations)): 
-            #     for child in possibleEvaluations[i].children: # type: ignore
+            start_time = time.time()
+            self.fitnessCounter = 0
+            self.fitness.clear()
+            leafEvaluations = sorted(self.reservationTree.uniqueValues)[::-1]
+            for i in range(len(leafEvaluations)):
+                self.computeFitness(self.reservationTree.rootNode, leafEvaluations[i], i)
+            end_time = time.time()
+            print(end_time - start_time, "seconds c")
 
-            
-            #print(len(fitness))
+            print("computed: ", len(self.fitness))
             #set next generation's initial population as the top N chromosomes of this generation
-            tempCounter = 0
-            tempFitness = fitness.copy()
-            fitness.clear()
-            for chromosome, fitnessValue in reversed(sorted(tempFitness.items(),key=lambda x: x[1])):
-                fitness[chromosome] = fitnessValue
-                tempCounter += 1
-                if tempCounter >= self.initialPopulationSize:
-                    break
+            bestChromosome = max(self.fitness, key=lambda chromosome: self.fitness[chromosome])
+            finalEvaluation = self.fitness[bestChromosome]
+            end_time = time.time()
+            print(end_time - start_time, "seconds d")
 
-                #get best chromosome
-                if tempCounter == 1:
-                    bestChromosome = chromosome
-                    finalEvaluation = fitnessValue
-
-        #print("new fitness ", fitness)
-        self.reservationTree.showTree()
+        print("final fitness ", self.fitness)
+        #self.reservationTree.showTree()
         bestMove = (int(bestChromosome[0]+bestChromosome[1]),int(bestChromosome[2]+bestChromosome[3]))
         return bestMove, finalEvaluation
 

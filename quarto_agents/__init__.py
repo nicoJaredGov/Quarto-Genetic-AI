@@ -3,3 +3,4 @@ from .human_player import *
 from .random_agent import *
 from .negamax_agent import *
 from .genetic_agent import *
+from .genetic_agent_test import *
