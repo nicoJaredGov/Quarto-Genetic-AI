@@ -17,6 +17,7 @@ class GeneticMinmaxAgent(GenericQuartoAgent):
         self.mutationRate = mutationRate
         self.initialPopulationSize = initialPopulationSize
         self.maxPopulationSize = maxPopulationSize
+        self.fitness = dict()
 
 
     # Only used in debugging
@@ -65,9 +66,9 @@ class GeneticMinmaxAgent(GenericQuartoAgent):
                     numLines += 1
         
         if turn:
-            return numLines
-        else:
             return -numLines
+        else:
+            return numLines
     
     #Each move consists of 4 consecutive characters in the chromosome - 2 for place and 2 for next piece
     #movePath is defined as a list of tuples which represent moves
@@ -156,7 +157,13 @@ class GeneticMinmaxAgent(GenericQuartoAgent):
     
     def mutation(self, chromosome, quartoGameState):
         numMoves = len(chromosome) // 2
-        mutationPoint = np.random.randint(numMoves)
+        positions = list(range(0,numMoves,2))
+        pieces = list(range(1,numMoves,2))
+
+        if np.random.sample() < 0.8:
+            mutationPoint = np.random.choice(positions)
+        else:
+            mutationPoint = np.random.choice(pieces)
 
         if mutationPoint % 2 == 0: #move position
             mutation = sample(quartoGameState[3], 1)[0] 
@@ -191,20 +198,40 @@ class GeneticMinmaxAgent(GenericQuartoAgent):
         tempBoard = deepcopy(quartoGameState[0])
         tempCurrentPiece = quartoGameState[1]
         evaluation = 0
+        myTurn = True
+        isGameOver = False
 
         #update temporary board and temporary piece
         for move in movePath:
             row, col = qutil.get2dCoords(move[0])
             tempBoard[row][col] = tempCurrentPiece
             tempCurrentPiece = move[1]
-        
-        if qutil.isGameOver(tempBoard):
-            if len(movePath) % 2 == 0: evaluation = -10
-            else: evaluation = 10
-        else:
-            evaluation = self.lineEvaluation(tempBoard, len(movePath) % 2 != 0)
+
+            if qutil.isGameOver(tempBoard):
+                isGameOver = True
+                if myTurn: evaluation = 10
+                else: evaluation = -10
+                break
+            
+            myTurn = not myTurn
+
+        #case when no player has won
+        if not isGameOver:
+            evaluation = self.lineEvaluation(tempBoard, not myTurn)
     
         return evaluation
+
+    #recursive function to update the fitness of the top N chromosomes
+    def computeFitness(self, node, evaluation, i):
+        if self.fitnessCounter >= self.initialPopulationSize:
+            return
+        if node.is_leaf:
+            self.fitness[node.name] = evaluation
+            self.fitnessCounter += 1
+            #print("ff ",self.fitnessCounter)
+        else:
+            for child in [n for n in node.children if n.value == evaluation]:
+                self.computeFitness(child, evaluation, i)
 
     #main Genetic Minimax implementation
     def generateSolution(self, quartoGameState):
@@ -212,10 +239,10 @@ class GeneticMinmaxAgent(GenericQuartoAgent):
         self.reservationTree = ReservationTree()
         
         #randomize initial population
-        fitness = dict()
+        self.fitness.clear()
         for _ in range(self.initialPopulationSize):
             chromosome, leafEvaluation = self.createChromosome(quartoGameState)
-            fitness[chromosome] = 0
+            self.fitness[chromosome] = 0
             self.reservationTree.addPath(chromosome, leafEvaluation)
         
         #print("initial: ", fitness, len(fitness))
@@ -223,7 +250,7 @@ class GeneticMinmaxAgent(GenericQuartoAgent):
         finalEvaluation = -1
         for _ in range(self.maxGenerations):
             #perform crossover and mutation
-            parents = fitness.keys()
+            parents = self.fitness.keys()
 
             for _ in range(self.maxPopulationSize - len(parents)):
                 #random parent selection
@@ -237,7 +264,7 @@ class GeneticMinmaxAgent(GenericQuartoAgent):
                         continue
 
                     if self.isValidChromosome(mutatedChild, quartoGameState):
-                        fitness[mutatedChild] = 0
+                        self.fitness[mutatedChild] = 0
                         leafEvaluation = self.evaluate(mutatedChild, quartoGameState)
                         self.reservationTree.addPath(mutatedChild, leafEvaluation)
 
@@ -253,29 +280,21 @@ class GeneticMinmaxAgent(GenericQuartoAgent):
                         continue
 
                     if self.isValidChromosome(crossoverChild, quartoGameState):
-                        fitness[crossoverChild] = 0
+                        self.fitness[crossoverChild] = 0
                         leafEvaluation = self.evaluate(crossoverChild, quartoGameState)
                         self.reservationTree.addPath(crossoverChild, leafEvaluation)
 
             #update fitness for all chromosomes in this generation
-            for c in fitness.keys():
-                fitness[c] = self.reservationTree.computeFitness(c)
+            self.fitnessCounter = 0
+            self.fitness.clear()
+            leafEvaluations = sorted(self.reservationTree.uniqueValues)[::-1]
+            for i in range(len(leafEvaluations)):
+                self.computeFitness(self.reservationTree.rootNode, leafEvaluations[i], i)
             
             #print(len(fitness))
             #set next generation's initial population as the top N chromosomes of this generation
-            tempCounter = 0
-            tempFitness = fitness.copy()
-            fitness.clear()
-            for chromosome, fitnessValue in reversed(sorted(tempFitness.items(),key=lambda x: x[1])):
-                fitness[chromosome] = fitnessValue
-                tempCounter += 1
-                if tempCounter >= self.initialPopulationSize:
-                    break
-
-                #get best chromosome
-                if tempCounter == 1:
-                    bestChromosome = chromosome
-                    finalEvaluation = fitnessValue
+            bestChromosome = max(self.fitness, key=lambda chromosome: self.fitness[chromosome])
+            finalEvaluation = self.fitness[bestChromosome]
 
         #print("new fitness ", fitness)
         #self.reservationTree.showTree()
@@ -287,6 +306,7 @@ class ReservationTree():
     def __init__(self) -> None:
         self.rootNode = Node("root", value=-10)
         self.leafNodes = dict()
+        self.uniqueValues = set()
 
     def showTree(self):
         self.rootNode.show(attr_list=["value"])
@@ -330,7 +350,7 @@ class ReservationTree():
     def addPath(self, encoding, leafEvaluation):
         current, lastIndex = self.findChromosomeNode(encoding)
         movePath = [(int(encoding[i]+encoding[i+1]),int(encoding[i+2]+encoding[i+3])) for i in range(lastIndex,len(encoding)-3,4)]
-
+        self.uniqueValues.add(leafEvaluation)
         for m in range(0,len(movePath)):
             if m == len(movePath)-1: #leaf node
                 current = Node(encoding[0:lastIndex+4*(m+1)], value=leafEvaluation, parent=current)
