@@ -67,9 +67,9 @@ class GeneticMinmaxAgentTest(GenericQuartoAgent):
                     numLines += 1
         
         if turn:
-            return numLines
-        else:
             return -numLines
+        else:
+            return numLines
     
     #Each move consists of 4 consecutive characters in the chromosome - 2 for place and 2 for next piece
     #movePath is defined as a list of tuples which represent moves
@@ -199,6 +199,8 @@ class GeneticMinmaxAgentTest(GenericQuartoAgent):
         tempBoard = deepcopy(quartoGameState[0])
         tempCurrentPiece = quartoGameState[1]
         evaluation = 0
+        myTurn = True
+        isGameOver = False
 
         #update temporary board and temporary piece
         for move in movePath:
@@ -206,11 +208,17 @@ class GeneticMinmaxAgentTest(GenericQuartoAgent):
             tempBoard[row][col] = tempCurrentPiece
             tempCurrentPiece = move[1]
         
-        if qutil.isGameOver(tempBoard):
-            if len(movePath) % 2 == 0: evaluation = -10
-            else: evaluation = 10
-        else:
-            evaluation = self.lineEvaluation(tempBoard, len(movePath) % 2 != 0)
+            if qutil.isGameOver(tempBoard):
+                isGameOver = True
+                if myTurn: evaluation = 10
+                else: evaluation = -10
+                break
+            
+            myTurn = not myTurn
+
+        #case when no player has won
+        if not isGameOver:
+            evaluation = self.lineEvaluation(tempBoard, not myTurn)
     
         return evaluation
 
