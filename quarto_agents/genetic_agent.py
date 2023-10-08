@@ -147,7 +147,10 @@ class GeneticMinmaxAgent(GenericQuartoAgent):
             numMoves = len(chromosomeA) // 4
         else:
             numMoves = len(chromosomeB) // 4
-
+        
+        if numMoves == 1:
+            return chromosomeA
+        
         point = np.random.randint(1,numMoves)
         return chromosomeA[:4*point] + chromosomeB[4*point:]
     
@@ -258,7 +261,7 @@ class GeneticMinmaxAgent(GenericQuartoAgent):
             for c in fitness.keys():
                 fitness[c] = self.reservationTree.computeFitness(c)
             
-            print(len(fitness))
+            #print(len(fitness))
             #set next generation's initial population as the top N chromosomes of this generation
             tempCounter = 0
             tempFitness = fitness.copy()
