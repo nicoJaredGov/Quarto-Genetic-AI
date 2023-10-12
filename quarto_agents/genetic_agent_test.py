@@ -106,7 +106,7 @@ class GeneticMinmaxAgentTest(GenericQuartoAgent):
 
         myTurn = True
         isGameOver = False
-        newChromosome = list()
+        newChromosome = ""
         evaluation = 0
         for _ in range(self.searchDepth):
             if len(tempPositions) <= 0:
@@ -121,7 +121,15 @@ class GeneticMinmaxAgentTest(GenericQuartoAgent):
             tempNextPieces.remove(randomPiece)
 
             #add random move to new chromosome
-            newChromosome.append((randomPos, randomPiece))
+            if randomPos <= 9:
+                newChromosome += "0"+str(randomPos)
+            else:
+                newChromosome += str(randomPos)
+        
+            if randomPiece <= 9:
+                newChromosome += "0"+str(randomPiece)
+            else:
+                newChromosome += str(randomPiece)
 
             #update temporary board and temporary piece
             row, col = qutil.get2dCoords(randomPos)
@@ -141,7 +149,7 @@ class GeneticMinmaxAgentTest(GenericQuartoAgent):
         if not isGameOver:
             evaluation = self.lineEvaluation(tempBoard, not myTurn)
 
-        return self.encodeChromosome(newChromosome), evaluation
+        return newChromosome, evaluation
 
     #one-point crossover
     def crossover(self, chromosomeA, chromosomeB):
@@ -161,7 +169,7 @@ class GeneticMinmaxAgentTest(GenericQuartoAgent):
         positions = list(range(0,numMoves,2))
         pieces = list(range(1,numMoves,2))
 
-        if np.random.sample() < 0.8:
+        if np.random.sample() < 0.9:
             mutationPoint = np.random.choice(positions)
         else:
             mutationPoint = np.random.choice(pieces)
@@ -310,7 +318,7 @@ class GeneticMinmaxAgentTest(GenericQuartoAgent):
             end_time = time.time()
             print(end_time - start_time, "seconds d")
 
-        print("final fitness ", self.fitness)
+        #print("final fitness ", self.fitness)
         #self.reservationTree.showTree()
         bestMove = (int(bestChromosome[0]+bestChromosome[1]),int(bestChromosome[2]+bestChromosome[3]))
         return bestMove, finalEvaluation
