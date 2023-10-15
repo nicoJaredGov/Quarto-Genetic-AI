@@ -105,7 +105,7 @@ class GeneticMinmaxAgent(GenericQuartoAgent):
 
         myTurn = True
         isGameOver = False
-        newChromosome = list()
+        newChromosome = ""
         evaluation = 0
         for _ in range(self.searchDepth):
             if len(tempPositions) <= 0:
@@ -120,7 +120,15 @@ class GeneticMinmaxAgent(GenericQuartoAgent):
             tempNextPieces.remove(randomPiece)
 
             #add random move to new chromosome
-            newChromosome.append((randomPos, randomPiece))
+            if randomPos <= 9:
+                newChromosome += "0"+str(randomPos)
+            else:
+                newChromosome += str(randomPos)
+        
+            if randomPiece <= 9:
+                newChromosome += "0"+str(randomPiece)
+            else:
+                newChromosome += str(randomPiece)
 
             #update temporary board and temporary piece
             row, col = qutil.get2dCoords(randomPos)
@@ -140,7 +148,7 @@ class GeneticMinmaxAgent(GenericQuartoAgent):
         if not isGameOver:
             evaluation = self.lineEvaluation(tempBoard, not myTurn)
 
-        return self.encodeChromosome(newChromosome), evaluation
+        return newChromosome, evaluation
 
     #one-point crossover
     def crossover(self, chromosomeA, chromosomeB):
