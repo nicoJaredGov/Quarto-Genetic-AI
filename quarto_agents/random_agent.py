@@ -3,6 +3,10 @@ from numpy import random
 
 class RandomAgent(GenericQuartoAgent):
 
+    def __init__(self) -> None:
+        super().__init__()
+        super().setName("Random Agent")
+
     def makeFirstMove(self, quartoGameState):
         nextPiece = random.choice(list(quartoGameState[2]))
         return nextPiece

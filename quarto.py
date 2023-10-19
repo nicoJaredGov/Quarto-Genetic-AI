@@ -3,7 +3,7 @@ import quarto_util as qutil
 import quarto_agents.generic_quarto_agent as qagents
 
 class QuartoGame:
-    def __init__(self, name1, agent1: qagents.GenericQuartoAgent, name2, agent2: qagents.GenericQuartoAgent, gui_mode=True, bin_mode=False):
+    def __init__(self, agent1: qagents.GenericQuartoAgent, agent2: qagents.GenericQuartoAgent, player1Name=None, player2Name=None, gui_mode=True, bin_mode=False):
         '''
         agent1:
             Agent initialized for player 1. 
@@ -17,8 +17,7 @@ class QuartoGame:
         self.checkAgentsValid(agent1, agent2)
         self.player1 = agent1
         self.player2 = agent2
-        self.player1Name = name1
-        self.player2Name = name2
+        self.setPlayerNames(player1Name, player2Name)
         self.gui_mode = gui_mode #show graphical view of board
         self.bin_mode = bin_mode #if terminal view is shown, replace integer piece representation with binary representation
 
@@ -43,6 +42,17 @@ class QuartoGame:
     def encodeBoard(self):
         return qutil.encodeBoard(self.board, self.currentPiece)
 
+    def setPlayerNames(self, name1, name2):
+        if name1 is None:
+            self.player1Name = self.player1.name
+        else:
+            self.player1Name = name1
+
+        if name2 is None:
+            self.player2Name = self.player2.name
+        else:
+            self.player2Name = name2
+    
     def showPlayerName(self, turn):
         #turn
         #True = player 1

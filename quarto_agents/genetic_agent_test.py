@@ -10,6 +10,7 @@ class GeneticMinmaxAgentTest(GenericQuartoAgent):
 
     def __init__(self, searchDepth=3, maxGenerations=2, crossoverRate=0.4, mutationRate=0.8, initialPopulationSize=3, maxPopulationSize=10) -> None:
         super().__init__()
+        super().setName("Genetic-Test-"+str(searchDepth))
 
         #hyperparameters
         self.searchDepth = searchDepth
