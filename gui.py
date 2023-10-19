@@ -10,6 +10,9 @@ class QuartoGUI(tk.Tk):
         super().__init__()
         self.title("Quarto Game")
         self._cells = {}
+        self.takenCells = set()
+        self._pieces = {}
+        self.takenPieces = set()
         self._game = game
         self._photos = []
 
@@ -62,6 +65,7 @@ class QuartoGUI(tk.Tk):
                     height=2,
                     highlightbackground="lightblue",
                 )
+                self._cells[button] = (row,col)
                 button.bind("<ButtonPress-1>", self.play)
                 button.grid(row=row, column=col, padx=5, pady=5, sticky="nsew")
     
@@ -78,7 +82,7 @@ class QuartoGUI(tk.Tk):
                     image=self._photos[4*row+col],
                     relief=tk.FLAT
                 )
-                self._cells[button] = (row, col)
+                self._pieces[button] = (row,col)
                 self.add_dragable(button)
                 button.grid(row=row, column=col, padx=5, pady=5)
 
@@ -147,7 +151,17 @@ class QuartoGUI(tk.Tk):
         x,y = event.widget.winfo_pointerxy()
         target = event.widget.winfo_containing(x,y)
         try:
+            if event.widget['state'] == "disabled":
+                print("piece unavailable")
+                return
+            if target in self.takenCells or target not in self._cells.keys():
+                print("Position unavailable")
+                return
             target.configure(image=event.widget.cget("image"))
+            self.takenCells.add(target)
+            event.widget.configure(state=tk.DISABLED)
+            self.takenPieces.add(event.widget)
+                
         except:
             pass
 
