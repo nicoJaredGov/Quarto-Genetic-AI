@@ -23,7 +23,7 @@ class QuartoGUI(tk.Tk):
         self._create_piece_grid()
 
     def load_photos(self):
-        image_paths = [f"images/{i}.png" for i in range(16)]
+        image_paths = [f"images/{i}.png" for i in range(17)]
         for image_path in image_paths:
             img = Image.open(image_path)
             img = img.resize((int(0.75*img.width),int(0.75*img.height)))  # Resize the image using PIL
@@ -52,22 +52,18 @@ class QuartoGUI(tk.Tk):
     def _create_board_grid(self):
         grid_frame = tk.Frame(master=self)
         grid_frame.pack(padx=5, pady=20, side=tk.LEFT)
+        
         for row in range(4):
-            self.rowconfigure(row, weight=1, minsize=50)
-            self.columnconfigure(row, weight=1, minsize=75)
             for col in range(4):
                 button = tk.Button(
                     master=grid_frame,
-                    text="",
-                    font=font.Font(size=36, weight="bold"),
                     fg="black",
-                    width=3,
-                    height=2,
-                    highlightbackground="lightblue",
+                    width=100,
+                    height=100,
+                    image=self._photos[16]
                 )
                 self._cells[button] = (row,col)
-                button.bind("<ButtonPress-1>", self.play)
-                button.grid(row=row, column=col, padx=5, pady=5, sticky="nsew")
+                button.grid(row=row, column=col, padx=3, pady=3, sticky="nsew")
     
     def _create_piece_grid(self):
         grid_frame = tk.Frame(master=self)
