@@ -50,8 +50,8 @@ class QuartoGUI(tk.Tk):
         self.display.pack()
 
     def _create_board_grid(self):
-        grid_frame = tk.Frame(master=self)
-        grid_frame.pack(padx=5, pady=20, side=tk.LEFT)
+        grid_frame = tk.Frame(master=self, background="black", padx=20, pady=20)
+        grid_frame.pack(padx=50, pady=50, side=tk.LEFT)
         
         for row in range(4):
             for col in range(4):
@@ -60,14 +60,15 @@ class QuartoGUI(tk.Tk):
                     fg="black",
                     width=100,
                     height=100,
-                    image=self._photos[16]
+                    image=self._photos[16],
+                    bd=0
                 )
                 self._cells[button] = (row,col)
                 button.grid(row=row, column=col, padx=3, pady=3, sticky="nsew")
     
     def _create_piece_grid(self):
-        grid_frame = tk.Frame(master=self)
-        grid_frame.pack(padx=5, pady=20, side=tk.LEFT)
+        grid_frame = tk.Frame(master=self, background="#876c3e")
+        grid_frame.pack(padx=50, pady=20, side=tk.LEFT)
         
         for row in range(4):
             self.rowconfigure(row, weight=1, minsize=50)
@@ -76,7 +77,8 @@ class QuartoGUI(tk.Tk):
                 button = tk.Button(
                     master=grid_frame,
                     image=self._photos[4*row+col],
-                    relief=tk.FLAT
+                    relief=tk.FLAT,
+                    bd=0
                 )
                 self._pieces[button] = (row,col)
                 self.add_dragable(button)
@@ -153,7 +155,7 @@ class QuartoGUI(tk.Tk):
             if target in self.takenCells or target not in self._cells.keys():
                 print("Position unavailable")
                 return
-            target.configure(image=event.widget.cget("image"))
+            target.configure(image=event.widget.cget("image"), bg="#876c3e")
             self.takenCells.add(target)
             event.widget.configure(state=tk.DISABLED)
             self.takenPieces.add(event.widget)
