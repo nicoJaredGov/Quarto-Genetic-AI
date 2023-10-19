@@ -3,7 +3,7 @@ from tkinter import font
 from PIL import ImageTk, Image
 
 from quarto import *
-import quarto_agents
+import quarto_agents 
 
 class QuartoGUI(tk.Tk):
     def __init__(self, game):
@@ -21,11 +21,9 @@ class QuartoGUI(tk.Tk):
 
     def load_photos(self):
         image_paths = [f"images/{i}.png" for i in range(16)]
-
         for image_path in image_paths:
             img = Image.open(image_path)
             img = img.resize((int(0.75*img.width),int(0.75*img.height)))  # Resize the image using PIL
-
             photo = ImageTk.PhotoImage(img)
             self._photos.append(photo)
 
@@ -51,11 +49,6 @@ class QuartoGUI(tk.Tk):
     def _create_board_grid(self):
         grid_frame = tk.Frame(master=self)
         grid_frame.pack(padx=5, pady=20, side=tk.LEFT)
-        display1 = tk.Label(
-            master=grid_frame,
-            text="Board",
-            font=font.Font(size=10, weight="bold"),
-        )
         for row in range(4):
             self.rowconfigure(row, weight=1, minsize=50)
             self.columnconfigure(row, weight=1, minsize=75)
@@ -69,7 +62,6 @@ class QuartoGUI(tk.Tk):
                     height=2,
                     highlightbackground="lightblue",
                 )
-                self._cells[button] = (row, col)
                 button.bind("<ButtonPress-1>", self.play)
                 button.grid(row=row, column=col, padx=5, pady=5, sticky="nsew")
     
@@ -83,11 +75,12 @@ class QuartoGUI(tk.Tk):
             for col in range(4):
                 button = tk.Button(
                     master=grid_frame,
-                    image=self._photos[4*row+col]
+                    image=self._photos[4*row+col],
+                    relief=tk.FLAT
                 )
                 self._cells[button] = (row, col)
-                button.bind("<ButtonPress-1>", self.play)
-                button.grid(row=row, column=col, padx=5, pady=5, sticky="nsew")
+                self.add_dragable(button)
+                button.grid(row=row, column=col, padx=5, pady=5)
 
     def play(self, event):
         """Handle a player's move."""
@@ -108,6 +101,7 @@ class QuartoGUI(tk.Tk):
         #         self._game.toggle_player()
         #         msg = f"{self._game.current_player.label}'s turn"
         #         self._update_display(msg)
+        
 
     def _update_button(self, clicked_btn):
         clicked_btn.config(text=self._game.current_player.label)
@@ -130,10 +124,36 @@ class QuartoGUI(tk.Tk):
             button.config(highlightbackground="lightblue")
             button.config(text="")
             button.config(fg="black")
+    
+    ##drag and drop functionality
+    def add_dragable(self, widget):
+        widget.bind("<ButtonPress-1>", self.on_start)
+        widget.bind("<B1-Motion>", self.on_drag)
+        widget.bind("<ButtonRelease-1>", self.on_drop)
+        widget.configure(cursor="hand1")
+
+    def on_start(self, event):
+        # you could use this method to create a floating window
+        # that represents what is being dragged.
+        pass
+
+    def on_drag(self, event):
+        # you could use this method to move a floating window that
+        # represents what you're dragging
+        pass
+
+    def on_drop(self, event):
+        # find the widget under the cursor
+        x,y = event.widget.winfo_pointerxy()
+        target = event.widget.winfo_containing(x,y)
+        try:
+            target.configure(image=event.widget.cget("image"))
+        except:
+            pass
 
 def main():
     """Create the game's board and run its main loop."""
-    game = QuartoGame("Player 1", quarto_agents.HumanPlayer(), "Player 2", quarto_agents.HumanPlayer(), gui_mode=True, bin_mode=False)
+    game = QuartoGame(quarto_agents.HumanPlayer(), quarto_agents.HumanPlayer(), gui_mode=True, bin_mode=False)
     gui = QuartoGUI(game)
     gui.mainloop()
 
