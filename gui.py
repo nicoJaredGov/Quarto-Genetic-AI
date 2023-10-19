@@ -76,9 +76,12 @@ class QuartoGUI(tk.Tk):
             for col in range(4):
                 button = tk.Button(
                     master=grid_frame,
+                    text=str(4*row+col),
+                    font= ('Helvetica 15 bold'),
                     image=self._photos[4*row+col],
+                    compound= tk.RIGHT,
                     relief=tk.FLAT,
-                    bd=0
+                    bd=0,
                 )
                 self._pieces[button] = (row,col)
                 self.add_dragable(button)
