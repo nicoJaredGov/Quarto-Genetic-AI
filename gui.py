@@ -41,13 +41,19 @@ class QuartoGUI(tk.Tk):
 
     def _create_board_display(self):
         display_frame = tk.Frame(master=self)
-        display_frame.pack(fill=tk.X)
+        display_frame.pack(fill=tk.X, padx=250)
         self.display = tk.Label(
             master=display_frame,
             text="Ready?",
             font=font.Font(size=28, weight="bold"),
         )
+        display2 = tk.Label(
+            master=display_frame,
+            text="Player 1",
+            font=font.Font(size=18, weight="bold")
+        )
         self.display.pack()
+        display2.pack()
 
     def _create_board_grid(self):
         grid_frame = tk.Frame(master=self, background="black", padx=20, pady=20)
@@ -60,7 +66,10 @@ class QuartoGUI(tk.Tk):
                     fg="black",
                     width=100,
                     height=100,
+                    text=4*row+col,
+                    font= ('Helvetica 12 bold'),
                     image=self._photos[16],
+                    compound='center',
                     bd=0
                 )
                 self._cells[button] = (row,col)
@@ -89,37 +98,11 @@ class QuartoGUI(tk.Tk):
 
     def play(self, event):
         """Handle a player's move."""
-        clicked_btn = event.widget
-        # row, col = self._cells[clicked_btn]
-        # move = Move(row, col, self._game.current_player.label)
-        # if self._game.is_valid_move(move):
-        #     self._update_button(clicked_btn)
-        #     self._game.process_move(move)
-        #     if self._game.is_tied():
-        #         self._update_display(msg="Tied game!", color="red")
-        #     elif self._game.has_winner():
-        #         self._highlight_cells()
-        #         msg = f'Player "{self._game.current_player.label}" won!'
-        #         color = self._game.current_player.color
-        #         self._update_display(msg, color)
-        #     else:
-        #         self._game.toggle_player()
-        #         msg = f"{self._game.current_player.label}'s turn"
-        #         self._update_display(msg)
         
-
-    def _update_button(self, clicked_btn):
-        clicked_btn.config(text=self._game.current_player.label)
-        clicked_btn.config(fg=self._game.current_player.color)
 
     def _update_display(self, msg, color="black"):
         self.display["text"] = msg
         self.display["fg"] = color
-
-    def _highlight_cells(self):
-        for button, coordinates in self._cells.items():
-            if coordinates in self._game.winner_combo:
-                button.config(highlightbackground="red")
 
     def reset_board(self):
         """Reset the game's board to play again."""
@@ -158,7 +141,7 @@ class QuartoGUI(tk.Tk):
             if target in self.takenCells or target not in self._cells.keys():
                 print("Position unavailable")
                 return
-            target.configure(image=event.widget.cget("image"), bg="#876c3e")
+            target.configure(image=event.widget.cget("image"), bg="#876c3e", text="")
             self.takenCells.add(target)
             event.widget.configure(state=tk.DISABLED)
             self.takenPieces.add(event.widget)
