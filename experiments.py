@@ -22,4 +22,20 @@ def createAgentTable(tableName: str):
     df['losses'] = df['losses'].astype('int8')
     df['draws'] = df['draws'].astype('int8')     
 
-    df.to_pickle(f'tables/{tableName}.pkl')
+    df.to_pickle(f'experiment_results/{tableName}.pkl')
+
+#Update an agent's stats after a game has been played - updatedRecord is in the form of a triplet (win, loss, draw) where 1 denotes the update for that and zero everywhere else
+def updateAgentStats(tableName: str, agentName: str, updatedRecord):
+    df = pd.read_pickle(f'experiment_results/{tableName}.pkl')
+    if agentName in df.agentName.values:
+        df.loc[df['agentName'] == agentName, ['wins', 'losses', 'draws']] += updatedRecord
+        df.to_pickle(f'experiment_results/{tableName}.pkl')
+    else:
+        record = {
+            'agentName': agentName,
+            'wins': updatedRecord[0],
+            'losses': updatedRecord[1],
+            'draws': updatedRecord[2]
+        }
+        df = df.append(record, ignore_index=True)
+        df.to_pickle(f'experiment_results/{tableName}.pkl')
