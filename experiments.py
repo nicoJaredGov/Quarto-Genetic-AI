@@ -12,3 +12,14 @@ def runMultiple(agent1: qagents.GenericQuartoAgent, agent2: qagents.GenericQuart
         print(result)
         game.resetGame()
 
+#Used to create a pandas dataframe to store results for agents - linked to the name of an agent
+def createAgentTable(tableName: str):
+    df = pd.DataFrame(columns=['agentName', 'wins', 'losses', 'draws'])
+
+    # Set data types for each column
+    df['agentName'] = df['agentName'].astype('str')
+    df['wins'] = df['wins'].astype('int8')
+    df['losses'] = df['losses'].astype('int8')
+    df['draws'] = df['draws'].astype('int8')     
+
+    df.to_pickle(f'tables/{tableName}.pkl')
