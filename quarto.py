@@ -201,7 +201,7 @@ class QuartoGame:
                     if validMove: break
                     elif i==2:
                         print("Three invalid moves made - game ended")
-                        return
+                        return -1 #player 1 made three invalid moves
             # player 2
             else: 
                 for i in range(3):
@@ -210,14 +210,18 @@ class QuartoGame:
                     if validMove: break
                     elif i==2:
                         print("Three invalid moves made - game ended")
-                        return
+                        return -2 #player 2 made three invalid moves
 
             if self.gui_mode: self.showGameState()
 
             if (qutil.isGameOver(self.board)):
-                if turn: print(f"\nPlayer 1 ({self.player1Name}) won!")
-                else: print(f"\nPlayer 2 ({self.player2Name}) won!")
-                return
+                if turn: 
+                    print(f"\nPlayer 1 ({self.player1Name}) won!")
+                    return 1 #player 1 has won
+                else: 
+                    print(f"\nPlayer 2 ({self.player2Name}) won!")
+                    return 2 #player 2 has won
+                
             turn = not turn
 
         # Place last piece and set nextPiece to nothing
@@ -227,11 +231,16 @@ class QuartoGame:
         if self.gui_mode: self.showGameState()
         
         if (qutil.isGameOver(self.board)):
-            if turn: print(f"\nPlayer 1 ({self.player1Name}) won!")
-            else: print(f"\nPlayer 2 ({self.player2Name}) won!")
+            if turn: 
+                print(f"\nPlayer 1 ({self.player1Name}) won!")
+                return 1
+            else:
+                print(f"\nPlayer 2 ({self.player2Name}) won!")
+                return 2
             return
         else:
             print("\nDraw!")
+            return 0
             
     def playRandomFirst(self):      
         turn = True #player 1 - True, player 2 - False
@@ -255,7 +264,7 @@ class QuartoGame:
                     if validMove: break
                     elif i==2:
                         print("Three invalid moves made - game ended")
-                        return
+                        return -1 #player 1 made three invalid moves
             # player 2
             else: 
                 for i in range(3):
@@ -264,14 +273,18 @@ class QuartoGame:
                     if validMove: break
                     elif i==2:
                         print("Three invalid moves made - game ended")
-                        return
+                        return -2 #player 2 made three invalid moves
 
             if self.gui_mode: self.showGameState()
 
             if (qutil.isGameOver(self.board)):
-                if turn: print(f"\nPlayer 1 ({self.player1Name}) won!")
-                else: print(f"\nPlayer 2 ({self.player2Name}) won!")
-                return
+                if turn: 
+                    print(f"\nPlayer 1 ({self.player1Name}) won!")
+                    return 1 #player 1 has won
+                else: 
+                    print(f"\nPlayer 2 ({self.player2Name}) won!")
+                    return 2 #player 2 has won
+
             turn = not turn
 
         # Place last piece and set nextPiece to nothing
@@ -281,10 +294,14 @@ class QuartoGame:
         if self.gui_mode: self.showGameState()
 
         if (qutil.isGameOver(self.board)):
-            if turn: print(f"\nPlayer 1 ({self.player1Name}) won!")
-            else: print(f"\nPlayer 2 ({self.player2Name}) won!")
-            return
+            if turn: 
+                print(f"\nPlayer 1 ({self.player1Name}) won!")
+                return 1
+            else: 
+                print(f"\nPlayer 2 ({self.player2Name}) won!")
+                return 2
         else:
             print("\nDraw!")
+            return 0
         
         
