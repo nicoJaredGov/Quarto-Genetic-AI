@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import font
 from PIL import ImageTk, Image
+import time
 
 from quarto import *
 import quarto_agents 
@@ -15,6 +16,7 @@ class QuartoGUI(tk.Tk):
         self.takenPieces = set()
         self._game = game
         self._photos = []
+        self.moveTurnEnabled = False
 
         self.load_photos()
         self._create_menu()
@@ -41,24 +43,44 @@ class QuartoGUI(tk.Tk):
 
     def _create_board_display(self):
         display_frame = tk.Frame(master=self)
-        display_frame.pack(fill=tk.X, padx=250)
+        display_frame.pack(fill=tk.X, padx=100)
         self.display = tk.Label(
             master=display_frame,
             text="Ready?",
             font=font.Font(size=28, weight="bold"),
         )
-        display2 = tk.Label(
+        self.display2 = tk.Label(
             master=display_frame,
-            text="Player 1",
+            text="Player 1's turn",
             font=font.Font(size=18, weight="bold")
         )
+        self.currentButton = tk.Button(
+            master=display_frame,
+            fg="black",
+            width=100,
+            height=100,
+            text="Current",
+            font= ('Helvetica 12 bold'),
+            image=self._photos[16],
+            compound='center'
+        )
+        self.startButton = tk.Button(
+            master=display_frame,
+            fg="black",
+            width=10,
+            height=5,
+            text="Start",
+            font= ('Helvetica 12 bold'),
+        )
         self.display.pack()
-        display2.pack()
+        self.display2.pack()
+        self.currentButton.pack(side=tk.LEFT)
+        self.startButton.pack(side=tk.RIGHT)
+        self.startButton.bind("<ButtonPress-1>", self.play)
 
     def _create_board_grid(self):
         grid_frame = tk.Frame(master=self, background="black", padx=20, pady=20)
         grid_frame.pack(padx=50, pady=50, side=tk.LEFT)
-        
         for row in range(4):
             for col in range(4):
                 button = tk.Button(
@@ -72,7 +94,7 @@ class QuartoGUI(tk.Tk):
                     compound='center',
                     bd=0
                 )
-                self._cells[button] = (row,col)
+                self._cells[(row,col)] = button
                 button.grid(row=row, column=col, padx=3, pady=3, sticky="nsew")
     
     def _create_piece_grid(self):
@@ -92,13 +114,124 @@ class QuartoGUI(tk.Tk):
                     relief=tk.FLAT,
                     bd=0,
                 )
-                self._pieces[button] = (row,col)
+                self._pieces[(row,col)] = button
                 self.add_dragable(button)
                 button.grid(row=row, column=col, padx=5, pady=5)
 
-    def play(self, event):
-        """Handle a player's move."""
+    def makeMove(self, position, nextPiece):
+        #validation checks
+        if position not in range(16):
+            self.display2['text'] = "This position does not exist"
+            return False
+        if nextPiece not in range(16):
+            self.display2['text'] = "This piece does not exist"
+            return False
+        if position not in self._game.availablePositions:
+            self.display2['text'] = "This cell is unavailable"
+            return False
+        if nextPiece not in self._game.availablePieces:
+            self.display2['text'] = "This piece is not available"
+            return False
         
+        #add to move history
+        self._game.moveHistory.append((position,nextPiece))
+        
+        #place piece on board and update game state
+        row, col = qutil.get2dCoords(position)
+        self._game.board[row][col] = self.currentPiece
+        self._game.availablePositions.remove(position)
+
+        #set next player's piece
+        self.currentPiece = nextPiece
+        self._game.availablePieces.remove(self.currentPiece)
+        
+        if self._game.gui_mode: print("Move successful")
+        return True   
+    
+    def play(self, event):
+        turn = True #player 1 - True, player 2 - False
+        self.display['text'] = "Player 1's turn"
+
+        # first move
+        self.display2['text'] = "Pick the first piece"
+        first_move = self._game.player1.makeFirstMove(self._game.getGameState())
+        self._game.makeFirstMove(first_move)
+        self.update_current(first_move)
+        turn = False 
+     
+        if self._game.gui_mode: self._game.showGameState()
+
+        # subsequent moves
+        for i in range(len(self._game.availablePositions)-1):
+            if self._game.gui_mode: self._game.showPlayerName(turn)
+
+            # player 1
+            if turn:
+                self.display['text'] = "Player 1's turn"
+                self.display2['text'] = "Agent is playing..."
+
+                for i in range(3):
+                    position, nextPiece = self._game.player1.makeMove(self._game.getGameState())
+                    validMove = self._game.makeMove(position, nextPiece)
+                    if validMove:
+                        
+                        self.update_cell(position)
+                        self.update_current(nextPiece)
+                        break
+                    elif i==2:
+                        print("Three invalid moves made - game ended")
+                        return
+            # player 2
+            else:
+                self.display['text'] = "Player 2's turn"
+                self.display2['text'] = "Agent is playing..."
+
+                for i in range(3):
+                    position, nextPiece = self._game.player2.makeMove(self._game.getGameState())
+                    validMove = self._game.makeMove(position, nextPiece)
+                    if validMove:
+                        self.display2['text'] = "Place current piece"
+                        self.update_cell(position)
+                        self.update_current(nextPiece)
+                        break
+                    elif i==2:
+                        print("Three invalid moves made - game ended")
+                        return
+
+            if self._game.gui_mode: self._game.showGameState()
+
+            if (qutil.isGameOver(self._game.board)):
+                if turn: print(f"\nPlayer 1 ({self._game.player1Name}) won!")
+                else: print(f"\nPlayer 2 ({self._game.player2Name}) won!")
+                return
+            turn = not turn
+
+        # Place last piece and set nextPiece to nothing
+        if self._game.gui_mode: self._game.showPlayerName(turn)
+        self._game.makeLastMove()
+
+        if self._game.gui_mode: self._game.showGameState()
+
+        if (qutil.isGameOver(self._game.board)):
+            if turn: print(f"\nPlayer 1 ({self._game.player1Name}) won!")
+            else: print(f"\nPlayer 2 ({self._game.player2Name}) won!")
+            return
+        else:
+            print("\nDraw!")
+        
+    def update_current(self, piece):
+        target = self.currentButton
+        target.configure(image=self._photos[piece], bg="#876c3e", text="")
+        piece = self._pieces[qutil.get2dCoords(piece)]
+        piece.configure(state=tk.DISABLED)
+        self.takenPieces.add(piece)
+
+    def update_cell(self, position):
+        piece = self._game.currentPiece
+        target = self._cells[qutil.get2dCoords(position)]
+        target.configure(image=self._photos[piece], bg="#876c3e", text="")
+        self.takenCells.add(target)
+        self.currentButton.configure(image=self._photos[16], text="current")
 
     def _update_display(self, msg, color="black"):
         self.display["text"] = msg
@@ -131,27 +264,28 @@ class QuartoGUI(tk.Tk):
         pass
 
     def on_drop(self, event):
-        # find the widget under the cursor
-        x,y = event.widget.winfo_pointerxy()
-        target = event.widget.winfo_containing(x,y)
-        try:
-            if event.widget['state'] == "disabled":
-                print("piece unavailable")
-                return
-            if target in self.takenCells or target not in self._cells.keys():
-                print("Position unavailable")
-                return
-            target.configure(image=event.widget.cget("image"), bg="#876c3e", text="")
-            self.takenCells.add(target)
-            event.widget.configure(state=tk.DISABLED)
-            self.takenPieces.add(event.widget)
-                
-        except:
-            pass
+        if self.moveTurnEnabled:
+            # find the widget under the cursor
+            x,y = event.widget.winfo_pointerxy()
+            target = event.widget.winfo_containing(x,y)
+            try:
+                if event.widget['state'] == "disabled":
+                    print("piece unavailable")
+                    return
+                if target in self.takenCells or target not in self._cells.values():
+                    print("Position unavailable")
+                    return
+                target.configure(image=event.widget.cget("image"), bg="#876c3e", text="")
+                self.takenCells.add(target)
+                event.widget.configure(state=tk.DISABLED)
+                self.takenPieces.add(event.widget)
+                    
+            except:
+                pass
 
 def main():
     """Create the game's board and run its main loop."""
-    game = QuartoGame(quarto_agents.HumanPlayer(), quarto_agents.HumanPlayer(), gui_mode=True, bin_mode=False)
+    game = QuartoGame(quarto_agents.RandomAgent(), quarto_agents.HumanPlayer(), gui_mode=True, bin_mode=False)
     gui = QuartoGUI(game)
     gui.mainloop()
 
