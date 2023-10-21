@@ -37,7 +37,7 @@ class QuartoGame:
         self.currentPiece = 16 #set to nothing upon starting
         self.availablePieces = set(range(16))
         self.availablePositions = set(range(16))
-        self.moveHistory = list()
+        self.moveHistory.clear()
     
     def encodeBoard(self):
         return qutil.encodeBoard(self.board, self.currentPiece)
