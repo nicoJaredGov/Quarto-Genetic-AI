@@ -183,7 +183,7 @@ class QuartoGame:
         if self.gui_mode: self.showPlayerName(turn)
 
         # first move
-        first_move = self.player1.makeFirstMove(self.getGameState())
+        first_move = self.player1.makeFirstMove(self.getGameState(), self.gui_mode)
         self.makeFirstMove(first_move)
         turn = False 
 
@@ -196,7 +196,7 @@ class QuartoGame:
             # player 1
             if turn:
                 for i in range(3):
-                    position, nextPiece = self.player1.makeMove(self.getGameState())
+                    position, nextPiece = self.player1.makeMove(self.getGameState(), self.gui_mode)
                     validMove = self.makeMove(position, nextPiece)
                     if validMove: break
                     elif i==2:
@@ -205,7 +205,7 @@ class QuartoGame:
             # player 2
             else: 
                 for i in range(3):
-                    position, nextPiece = self.player2.makeMove(self.getGameState())
+                    position, nextPiece = self.player2.makeMove(self.getGameState(), self.gui_mode)
                     validMove = self.makeMove(position, nextPiece)
                     if validMove: break
                     elif i==2:
@@ -259,7 +259,7 @@ class QuartoGame:
             # player 1
             if turn:
                 for i in range(3):
-                    position, nextPiece = self.player1.makeMove(self.getGameState())
+                    position, nextPiece = self.player1.makeMove(self.getGameState(), self.gui_mode)
                     validMove = self.makeMove(position, nextPiece)
                     if validMove: break
                     elif i==2:
@@ -268,7 +268,7 @@ class QuartoGame:
             # player 2
             else: 
                 for i in range(3):
-                    position, nextPiece = self.player2.makeMove(self.getGameState())
+                    position, nextPiece = self.player2.makeMove(self.getGameState(), self.gui_mode)
                     validMove = self.makeMove(position, nextPiece)
                     if validMove: break
                     elif i==2:

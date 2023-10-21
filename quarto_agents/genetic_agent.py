@@ -22,14 +22,15 @@ class GeneticMinmaxAgent(GenericQuartoAgent):
 
 
     # Only used in debugging
-    def makeFirstMove(self, quartoGameState):
+    def makeFirstMove(self, quartoGameState, gui_mode=False):
         nextPiece = int(input("Pick your opponent's first piece: "))
         return nextPiece
     
-    def makeMove(self, quartoGameState):
+    def makeMove(self, quartoGameState, gui_mode=False):
         (position, nextPiece), eval = self.generateSolution(quartoGameState)
-        print(f"Genetic agent placed piece at cell {position} and nextPiece is {nextPiece}")
-        print("maxEval: ", eval)
+        if gui_mode:
+            print(f"Genetic agent placed piece at cell {position} and nextPiece is {nextPiece}")
+            print("maxEval: ", eval)
         return position, nextPiece
     
     # Counts how many lines of three pieces with an identical property

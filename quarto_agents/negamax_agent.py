@@ -20,15 +20,15 @@ class NegamaxAgent(GenericQuartoAgent):
             self.table = pd.read_pickle(f'tables/{transposition}.pkl')
 
     # Only used in debugging
-    def makeFirstMove(self, quartoGameState):
+    def makeFirstMove(self, quartoGameState, gui_mode=False):
         nextPiece = int(input("Pick your opponent's first piece: "))
         return nextPiece
     
-    def makeMove(self, quartoGameState):
-        #print("\nSTATE RECEIVED: ", quartoGameState)
+    def makeMove(self, quartoGameState, gui_mode=False):
         maxScore, (position, nextPiece) = self.alphaBeta(quartoGameState, self.depth, -1000, 1000)
-        print(f"Negamax agent placed piece at cell {position} and nextPiece is {nextPiece}")
-        print("maxEval: ",maxScore)
+        if gui_mode:
+            print(f"Negamax agent placed piece at cell {position} and nextPiece is {nextPiece}")
+            print("maxEval: ",maxScore)
         return position, nextPiece
     
     def alphaBeta(self, quartoGameState, depth, alpha, beta):
