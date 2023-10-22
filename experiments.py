@@ -15,7 +15,7 @@ def runMultiple(tableName: str, agent1: qagents.GenericQuartoAgent, agent2: qage
 
     #create a new log file for these runs
     today = datetime.now()
-    curr_datetime = f"{today.date()} {today.hour}h {today.minute}m {today.second}s"
+    curr_datetime = f"{today.date()} {today.hour}_{today.minute}_{today.second}"
     logFile = open("experiment_results/runs/" + curr_datetime + ".txt", mode="a")
     logFile.write(agent1Name+","+agent2Name+"\n")
 

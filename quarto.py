@@ -248,7 +248,7 @@ class QuartoGame:
 
         #create a new log file for these runs
         today = datetime.now()
-        curr_datetime = f"{today.date()} {today.hour}h {today.minute}m {today.second}s"
+        curr_datetime = f"{today.date()} {today.hour}_{today.minute}_{today.second}"
         logFile = open("experiment_results/logs/" + curr_datetime + ".txt", mode="a")
         logFile.write(self.player1Name+","+self.player2Name+"\n")
 
@@ -278,6 +278,7 @@ class QuartoGame:
                     validMove = self.makeMove(position, nextPiece)
                     if validMove: break
                     elif i==2:
+                        logFile.write(str(-1))
                         logFile.close()
                         print("Three invalid moves made - game ended")
                         return -1 #player 1 made three invalid moves
@@ -290,6 +291,7 @@ class QuartoGame:
                     validMove = self.makeMove(position, nextPiece)
                     if validMove: break
                     elif i==2:
+                        logFile.write(str(-2))
                         logFile.close()
                         print("Three invalid moves made - game ended")
                         return -2 #player 2 made three invalid moves
@@ -298,11 +300,14 @@ class QuartoGame:
             logFile.write(f'{position},{nextPiece},{round(end_time - start_time,4)}\n')
 
             if (qutil.isGameOver(self.board)):
-                logFile.close()
-                if turn: 
+                if turn:
+                    logFile.write(str(1)) 
+                    logFile.close()
                     print(f"\nPlayer 1 ({self.player1Name}) won!")
                     return 1 #player 1 has won
                 else: 
+                    logFile.write(str(2))
+                    logFile.close()
                     print(f"\nPlayer 2 ({self.player2Name}) won!")
                     return 2 #player 2 has won
 
@@ -315,14 +320,19 @@ class QuartoGame:
         if self.gui_mode: self.showGameState()
 
         if (qutil.isGameOver(self.board)):
-            logFile.close()
-            if turn: 
+            if turn:
+                logFile.write(str(1)) 
+                logFile.close()
                 print(f"\nPlayer 1 ({self.player1Name}) won!")
                 return 1
-            else: 
+            else:
+                logFile.write(str(2))
+                logFile.close() 
                 print(f"\nPlayer 2 ({self.player2Name}) won!")
                 return 2
         else:
+            logFile.write(str(0))
+            logFile.close()
             print("\nDraw!")
             return 0
         
