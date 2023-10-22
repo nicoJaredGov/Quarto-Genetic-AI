@@ -2,6 +2,7 @@ from quarto import *
 import quarto_agents as qagents
 import quarto_util as qutil
 import pandas as pd
+from datetime import datetime
 
 #Given two agents, make them play against each other for a specified number of games
 def runMultiple(tableName: str, agent1: qagents.GenericQuartoAgent, agent2: qagents.GenericQuartoAgent, agent1Name, agent2Name, num_times=1):
@@ -11,9 +12,15 @@ def runMultiple(tableName: str, agent1: qagents.GenericQuartoAgent, agent2: qage
     player2wins = 0
     draws = 0
 
+    #create a new log file for these runs
+    today = datetime.now()
+    curr_datetime = f"{today.date()} {today.hour}h {today.minute}m {today.second}s"
+    logFile = open("experiment_results/runs/" + curr_datetime + ".txt", mode="a")
+    logFile.write(agent1Name+","+agent2Name+"\n")
+
     for i in range(num_times):
         result = game.playRandomFirst()
-        
+
         if result == 1:
             player1wins += 1
         elif result == 2:
@@ -22,13 +29,16 @@ def runMultiple(tableName: str, agent1: qagents.GenericQuartoAgent, agent2: qage
             draws +=1
         else:
             print("Invalid move return. Table not updated.")    
-
-        print(result)
+        
+        logFile.write(str(result)+"\n")
         game.resetGame()
     
+
     #update the stats table after all runs
     updateAgentStats(tableName, agent1Name, (player1wins,player2wins,draws))
     updateAgentStats(tableName, agent2Name, (player2wins,player1wins,draws))
+    logFile.write(f"{player1wins},{player2wins},{draws}")
+    logFile.close()
 
 #Used to create a pandas dataframe to store results for agents - linked to the name of an agent
 def createAgentTable(tableName: str):
