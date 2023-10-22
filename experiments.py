@@ -3,6 +3,7 @@ import quarto_agents as qagents
 import quarto_util as qutil
 import pandas as pd
 from datetime import datetime
+import time
 
 #Given two agents, make them play against each other for a specified number of games
 def runMultiple(tableName: str, agent1: qagents.GenericQuartoAgent, agent2: qagents.GenericQuartoAgent, agent1Name, agent2Name, num_times=1):
@@ -19,7 +20,9 @@ def runMultiple(tableName: str, agent1: qagents.GenericQuartoAgent, agent2: qage
     logFile.write(agent1Name+","+agent2Name+"\n")
 
     for i in range(num_times):
+        start_time = time.time()
         result = game.playRandomFirst()
+        end_time = time.time()
 
         if result == 1:
             player1wins += 1
@@ -30,7 +33,7 @@ def runMultiple(tableName: str, agent1: qagents.GenericQuartoAgent, agent2: qage
         else:
             print("Invalid move return. Table not updated.")    
         
-        logFile.write(str(result)+"\n")
+        logFile.write(f"{result},{round(end_time-start_time,4)}\n")
         game.resetGame()
     
 
