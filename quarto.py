@@ -1,6 +1,8 @@
 import numpy as np
 import quarto_util as qutil
 import quarto_agents.generic_quarto_agent as qagents
+from datetime import datetime
+import time
 
 class QuartoGame:
     def __init__(self, agent1: qagents.GenericQuartoAgent, agent2: qagents.GenericQuartoAgent, player1Name=None, player2Name=None, gui_mode=True, bin_mode=False):
@@ -242,42 +244,61 @@ class QuartoGame:
             print("\nDraw!")
             return 0
             
-    def playRandomFirst(self):      
+    def playRandomFirst(self):
+
+        #create a new log file for these runs
+        today = datetime.now()
+        curr_datetime = f"{today.date()} {today.hour}h {today.minute}m {today.second}s"
+        logFile = open("experiment_results/logs/" + curr_datetime + ".txt", mode="a")
+        logFile.write(self.player1Name+","+self.player2Name+"\n")
+
         turn = True #player 1 - True, player 2 - False
         if self.gui_mode: self.showPlayerName(turn)
 
         #player 1's choice of next piece is randomly chosen
         self.makeFirstMove(self.pickRandomPiece())
         turn = False
+        logFile.write(str(self.moveHistory[-1])+"\n")
 
         if self.gui_mode: self.showGameState()
 
         # subsequent moves
         for i in range(len(self.availablePositions)-1):
             if self.gui_mode: self.showPlayerName(turn)
+            logFile.write(self.encodeBoard()+",")
+            position, nextPiece = (16,16)
+            start_time, end_time = 0, 0
 
             # player 1
             if turn:
                 for i in range(3):
+                    start_time = time.time()
                     position, nextPiece = self.player1.makeMove(self.getGameState(), self.gui_mode)
+                    end_time = time.time()
                     validMove = self.makeMove(position, nextPiece)
                     if validMove: break
                     elif i==2:
+                        logFile.close()
                         print("Three invalid moves made - game ended")
                         return -1 #player 1 made three invalid moves
             # player 2
             else: 
                 for i in range(3):
+                    start_time = time.time()
                     position, nextPiece = self.player2.makeMove(self.getGameState(), self.gui_mode)
+                    end_time = time.time()
                     validMove = self.makeMove(position, nextPiece)
                     if validMove: break
                     elif i==2:
+                        logFile.close()
                         print("Three invalid moves made - game ended")
                         return -2 #player 2 made three invalid moves
 
             if self.gui_mode: self.showGameState()
+            logFile.write(f'{position},{nextPiece},{round(end_time - start_time,4)}\n')
 
             if (qutil.isGameOver(self.board)):
+                logFile.close()
                 if turn: 
                     print(f"\nPlayer 1 ({self.player1Name}) won!")
                     return 1 #player 1 has won
@@ -294,6 +315,7 @@ class QuartoGame:
         if self.gui_mode: self.showGameState()
 
         if (qutil.isGameOver(self.board)):
+            logFile.close()
             if turn: 
                 print(f"\nPlayer 1 ({self.player1Name}) won!")
                 return 1
