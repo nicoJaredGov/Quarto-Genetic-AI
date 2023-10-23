@@ -245,69 +245,45 @@ class QuartoGame:
             return 0
             
     def playRandomFirst(self):
-
-        #create a new log file for these runs
-        today = datetime.now()
-        curr_datetime = f"{today.date()} {today.hour}_{today.minute}_{today.second}"
-        logFile = open("experiment_results/logs/" + curr_datetime + ".txt", mode="a")
-        logFile.write(self.player1Name+","+self.player2Name+"\n")
-
         turn = True #player 1 - True, player 2 - False
         if self.gui_mode: self.showPlayerName(turn)
 
         #player 1's choice of next piece is randomly chosen
         self.makeFirstMove(self.pickRandomPiece())
         turn = False
-        logFile.write(str(self.moveHistory[-1])+"\n")
 
         if self.gui_mode: self.showGameState()
 
         # subsequent moves
         for i in range(len(self.availablePositions)-1):
             if self.gui_mode: self.showPlayerName(turn)
-            logFile.write(self.encodeBoard()+",")
-            position, nextPiece = (16,16)
-            start_time, end_time = 0, 0
 
             # player 1
             if turn:
                 for i in range(3):
-                    start_time = time.time()
                     position, nextPiece = self.player1.makeMove(self.getGameState(), self.gui_mode)
-                    end_time = time.time()
                     validMove = self.makeMove(position, nextPiece)
                     if validMove: break
                     elif i==2:
-                        logFile.write(str(-1))
-                        logFile.close()
                         print("Three invalid moves made - game ended")
                         return -1 #player 1 made three invalid moves
             # player 2
             else: 
                 for i in range(3):
-                    start_time = time.time()
                     position, nextPiece = self.player2.makeMove(self.getGameState(), self.gui_mode)
-                    end_time = time.time()
                     validMove = self.makeMove(position, nextPiece)
                     if validMove: break
                     elif i==2:
-                        logFile.write(str(-2))
-                        logFile.close()
                         print("Three invalid moves made - game ended")
                         return -2 #player 2 made three invalid moves
 
             if self.gui_mode: self.showGameState()
-            logFile.write(f'{position},{nextPiece},{round(end_time - start_time,4)}\n')
 
             if (qutil.isGameOver(self.board)):
                 if turn:
-                    logFile.write(str(1)) 
-                    logFile.close()
                     print(f"\nPlayer 1 ({self.player1Name}) won!")
                     return 1 #player 1 has won
                 else: 
-                    logFile.write(str(2))
-                    logFile.close()
                     print(f"\nPlayer 2 ({self.player2Name}) won!")
                     return 2 #player 2 has won
 
@@ -321,19 +297,136 @@ class QuartoGame:
 
         if (qutil.isGameOver(self.board)):
             if turn:
-                logFile.write(str(1)) 
-                logFile.close()
                 print(f"\nPlayer 1 ({self.player1Name}) won!")
                 return 1
             else:
-                logFile.write(str(2))
-                logFile.close() 
                 print(f"\nPlayer 2 ({self.player2Name}) won!")
                 return 2
         else:
-            logFile.write(str(0))
-            logFile.close()
             print("\nDraw!")
             return 0
         
+    def playLogged(self):
+        turn = True #player 1 - True, player 2 - False
+        if self.gui_mode: self.showPlayerName(turn)
+
+        #player 1's choice of next piece is randomly chosen
+        self.makeFirstMove(self.pickRandomPiece())
+        turn = False
+        self.detailedLogFile.write(str(self.moveHistory[-1])+"\n")
+
+        if self.gui_mode: self.showGameState()
+
+        # subsequent moves
+        for i in range(len(self.availablePositions)-1):
+            if self.gui_mode: self.showPlayerName(turn)
+            self.detailedLogFile.write(self.encodeBoard()+",")
+            position, nextPiece = (16,16)
+            start_time, end_time = 0, 0
+
+            # player 1
+            if turn:
+                for i in range(3):
+                    start_time = time.time()
+                    position, nextPiece = self.player1.makeMove(self.getGameState(), self.gui_mode)
+                    end_time = time.time()
+                    validMove = self.makeMove(position, nextPiece)
+                    if validMove: break
+                    elif i==2:
+                        self.detailedLogFile.write("-1\n")
+                        self.detailedLogFile.close()
+                        print("Three invalid moves made - game ended")
+                        return -1 #player 1 made three invalid moves
+            # player 2
+            else: 
+                for i in range(3):
+                    start_time = time.time()
+                    position, nextPiece = self.player2.makeMove(self.getGameState(), self.gui_mode)
+                    end_time = time.time()
+                    validMove = self.makeMove(position, nextPiece)
+                    if validMove: break
+                    elif i==2:
+                        self.detailedLogFile.write("-2\n")
+                        self.detailedLogFile.close()
+                        print("Three invalid moves made - game ended")
+                        return -2 #player 2 made three invalid moves
+
+            if self.gui_mode: self.showGameState()
+            self.detailedLogFile.write(f'{position},{nextPiece},{round(end_time - start_time,4)}\n')
+
+            if (qutil.isGameOver(self.board)):
+                if turn:
+                    self.detailedLogFile.write("1\n") 
+                    self.detailedLogFile.close()
+                    print(f"\nPlayer 1 ({self.player1Name}) won!")
+                    return 1 #player 1 has won
+                else: 
+                    self.detailedLogFile.write("2\n")
+                    self.detailedLogFile.close()
+                    print(f"\nPlayer 2 ({self.player2Name}) won!")
+                    return 2 #player 2 has won
+
+            turn = not turn
+
+        # Place last piece and set nextPiece to nothing
+        if self.gui_mode: self.showPlayerName(turn)
+        self.makeLastMove()
+
+        if self.gui_mode: self.showGameState()
+
+        if (qutil.isGameOver(self.board)):
+            if turn:
+                self.detailedLogFile.write("1\n")
+                self.detailedLogFile.close()
+                print(f"\nPlayer 1 ({self.player1Name}) won!")
+                return 1
+            else:
+                self.detailedLogFile.write("2\n")
+                self.detailedLogFile.close() 
+                print(f"\nPlayer 2 ({self.player2Name}) won!")
+                return 2
+        else:
+            self.detailedLogFile.write("0\n")
+            self.detailedLogFile.close()
+            print("\nDraw!")
+            return 0
         
+    def runMultiple(self, statsTableName, num_times):
+        player1wins = 0
+        player2wins = 0
+        draws = 0
+
+        #create a new log file for these runs
+        today = datetime.now()
+        curr_datetime = f"{today.date()} {today.hour}_{today.minute}_{today.second} {self.player1Name}_{self.player2Name}"
+        logFile = open("experiment_results/runs/" + curr_datetime + ".txt", mode="a")
+        logFile.write(self.player1Name+","+self.player2Name+"\n")
+
+        #create a detailed log file for the runs
+        self.detailedLogFile = open("experiment_results/logs/" + curr_datetime + ".txt", mode="a")
+        self.detailedLogFile.write(self.player1Name+","+self.player2Name+"\n")
+
+        for i in range(num_times):
+            start_time = time.time()
+            result = self.playLogged()
+            end_time = time.time()
+
+            if result == 1:
+                player1wins += 1
+            elif result == 2:
+                player2wins += 1
+            elif result == 0:
+                draws +=1
+            else:
+                print("Invalid move return. Table not updated.")    
+            
+            logFile.write(f"{result},{round(end_time-start_time,4)}\n")
+            self.resetGame()
+        
+
+        #update the stats table after all runs
+        qutil.updateAgentStats(statsTableName, self.player1Name, (player1wins,player2wins,draws))
+        qutil.updateAgentStats(statsTableName, self.player2Name, (player2wins,player1wins,draws))
+        logFile.write(f"{player1wins},{player2wins},{draws}")
+        logFile.close()
+        self.detailedLogFile.close()      
