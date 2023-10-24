@@ -334,7 +334,6 @@ class QuartoGame:
                     if validMove: break
                     elif i==2:
                         self.detailedLogFile.write("-1\n")
-                        self.detailedLogFile.close()
                         print("Three invalid moves made - game ended")
                         return -1 #player 1 made three invalid moves
             # player 2
@@ -354,6 +353,7 @@ class QuartoGame:
             self.detailedLogFile.write(f'{position},{nextPiece},{round(end_time - start_time,4)}\n')
 
             if (qutil.isGameOver(self.board)):
+                self.detailedLogFile.write(self.encodeBoard()+'\n')
                 if turn:
                     self.detailedLogFile.write("1\n") 
                     print(f"\nPlayer 1 ({self.player1Name}) won!")
@@ -367,9 +367,11 @@ class QuartoGame:
 
         # Place last piece and set nextPiece to nothing
         if self.gui_mode: self.showPlayerName(turn)
+        self.detailedLogFile.write(f'{self.encodeBoard()},{list(self.availablePositions)[0]},None,None\n')
         self.makeLastMove()
 
         if self.gui_mode: self.showGameState()
+        self.detailedLogFile.write(self.encodeBoard()+'\n')
 
         if (qutil.isGameOver(self.board)):
             if turn:
