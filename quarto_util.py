@@ -117,3 +117,28 @@ def updateAgentStats(tableName: str, agentName: str, updatedRecord):
     df['draws'] = df['draws'].astype('int8')  
 
     df.to_pickle(f'experiment_results/{tableName}.pkl')
+
+#Extracts data from detailed log files
+def readLogFile(filename):
+    log = open(filename)
+
+    agent1, agent2, num_runs = log.readline().split(',')
+    num_runs = int(num_runs)
+    data = []
+    game_results = []
+
+    for i in range(num_runs):
+        _ = log.readline()
+        line = log.readline().strip()
+        temp_data = []
+        
+        while line not in ['0', '1', '2']:
+            temp_data.append(line.split(','))
+            line = log.readline().strip()
+
+        data.append(temp_data)    
+        game_results.append(line)
+    
+    log.close()
+
+    return (agent1, agent2), data, game_results
