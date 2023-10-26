@@ -396,11 +396,11 @@ class QuartoGame:
         today = datetime.now()
         curr_datetime = f"{today.date()} {today.hour}_{today.minute}_{today.second} {self.player1Name}_{self.player2Name}"
         logFile = open("experiment_results/runs/" + curr_datetime + ".txt", mode="a")
-        logFile.write(self.player1Name+","+self.player2Name+"\n")
+        logFile.write(f"{self.player1Name},{self.player2Name},{num_times}\n")
 
         #create a detailed log file for the runs
         self.detailedLogFile = open("experiment_results/logs/" + curr_datetime + ".txt", mode="a")
-        self.detailedLogFile.write(self.player1Name+","+self.player2Name+"\n")
+        self.detailedLogFile.write(f"{self.player1Name},{self.player2Name},{num_times}\n")
 
         for i in range(num_times):
             start_time = time.time()
