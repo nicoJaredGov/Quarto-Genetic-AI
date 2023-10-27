@@ -268,7 +268,9 @@ class GeneticMinmaxAgentTest(GenericQuartoAgent):
             #perform crossover and mutation
             parents = self.fitness.keys()
 
-            for _ in range(self.maxPopulationSize - len(parents)):
+            print("here: ", self.maxPopulationSize - len(parents))
+
+            for _ in range(self.maxPopulationSize - np.max([len(parents),self.initialPopulationSize])):
                 #random parent selection
                 a, b = sample(parents, 2)
                 

@@ -238,7 +238,6 @@ class GeneticMinmaxAgent(GenericQuartoAgent):
         if node.is_leaf:
             self.fitness[node.name] = evaluation
             self.fitnessCounter += 1
-            #print("ff ",self.fitnessCounter)
         else:
             for child in [n for n in node.children if n.value == evaluation]:
                 self.computeFitness(child, evaluation, i)
@@ -255,14 +254,13 @@ class GeneticMinmaxAgent(GenericQuartoAgent):
             self.fitness[chromosome] = 0
             self.reservationTree.addPath(chromosome, leafEvaluation)
         
-        #print("initial: ", fitness, len(fitness))
         bestChromosome = ""
         finalEvaluation = -1
         for _ in range(self.maxGenerations):
             #perform crossover and mutation
             parents = self.fitness.keys()
 
-            for _ in range(self.maxPopulationSize - len(parents)):
+            for _ in range(self.maxPopulationSize -  np.max([len(parents),self.initialPopulationSize])):
                 #random parent selection
                 a, b = sample(parents, 2)
                 
@@ -301,13 +299,10 @@ class GeneticMinmaxAgent(GenericQuartoAgent):
             for i in range(len(leafEvaluations)):
                 self.computeFitness(self.reservationTree.rootNode, leafEvaluations[i], i)
             
-            #print(len(fitness))
             #set next generation's initial population as the top N chromosomes of this generation
             bestChromosome = max(self.fitness, key=lambda chromosome: self.fitness[chromosome])
             finalEvaluation = self.fitness[bestChromosome]
 
-        #print("new fitness ", fitness)
-        #self.reservationTree.showTree()
         bestMove = (int(bestChromosome[0]+bestChromosome[1]),int(bestChromosome[2]+bestChromosome[3]))
         return bestMove, finalEvaluation
 
