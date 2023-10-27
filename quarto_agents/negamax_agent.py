@@ -9,7 +9,7 @@ class NegamaxAgent(GenericQuartoAgent):
 
     def __init__(self, depth, transposition=None, searchWindow=256) -> None:
         super().__init__()
-        super().setName("Negamax-"+str(depth))
+        super().setName(f"Negamax-{depth}-{searchWindow}")
         self.depth = depth
         self.searchWindow = searchWindow
 
