@@ -305,8 +305,8 @@ class QuartoGame:
         else:
             print("\nDraw!")
             return 0
-        
-    def playLogged(self):
+    
+    def __playLogged(self):
         turn = True #player 1 - True, player 2 - False
         if self.gui_mode: self.showPlayerName(turn)
 
@@ -404,7 +404,7 @@ class QuartoGame:
 
         for i in range(num_times):
             start_time = time.time()
-            result = self.playLogged()
+            result = self.__playLogged()
             end_time = time.time()
 
             if result == 1:
