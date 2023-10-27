@@ -387,7 +387,7 @@ class QuartoGame:
             print("\nDraw!")
             return 0
         
-    def runMultiple(self, statsTableName, num_times):
+    def runMultiple(self, num_times):
         player1wins = 0
         player2wins = 0
         draws = 0
@@ -421,8 +421,6 @@ class QuartoGame:
         
 
         #update the stats table after all runs
-        qutil.updateAgentStats(statsTableName, self.player1Name, (player1wins,player2wins,draws))
-        qutil.updateAgentStats(statsTableName, self.player2Name, (player2wins,player1wins,draws))
         logFile.write(f"{player1wins},{player2wins},{draws}")
         logFile.close()
         self.detailedLogFile.close()      
