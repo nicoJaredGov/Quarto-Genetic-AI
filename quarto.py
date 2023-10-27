@@ -401,6 +401,7 @@ class QuartoGame:
         curr_datetime = f"{today.date()} {today.hour}_{today.minute}_{today.second} {self.player1Name}_{self.player2Name}"
         logFile = open("experiment_results/runs/" + curr_datetime + ".txt", mode="a")
         logFile.write(f"{self.player1Name},{self.player2Name},{num_times}\n")
+        logFile.write(f"result,player1cumulativeTime,player2cumulativeTime,player1numMoves,player2numMoves\n")
 
         #create a detailed log file for the runs
         self.detailedLogFile = open("experiment_results/logs/" + curr_datetime + ".txt", mode="a")
