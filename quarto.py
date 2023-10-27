@@ -255,25 +255,25 @@ class QuartoGame:
         if self.gui_mode: self.showGameState()
 
         # subsequent moves
-        for i in range(len(self.availablePositions)-1):
+        for _ in range(len(self.availablePositions)-1):
             if self.gui_mode: self.showPlayerName(turn)
 
             # player 1
             if turn:
-                for i in range(3):
+                for j in range(3):
                     position, nextPiece = self.player1.makeMove(self.getGameState(), self.gui_mode)
                     validMove = self.makeMove(position, nextPiece)
                     if validMove: break
-                    elif i==2:
+                    elif j==2:
                         print("Three invalid moves made - game ended")
                         return -1 #player 1 made three invalid moves
             # player 2
             else: 
-                for i in range(3):
+                for j in range(3):
                     position, nextPiece = self.player2.makeMove(self.getGameState(), self.gui_mode)
                     validMove = self.makeMove(position, nextPiece)
                     if validMove: break
-                    elif i==2:
+                    elif j==2:
                         print("Three invalid moves made - game ended")
                         return -2 #player 2 made three invalid moves
 
@@ -318,7 +318,7 @@ class QuartoGame:
         if self.gui_mode: self.showGameState()
 
         # subsequent moves
-        for i in range(len(self.availablePositions)-1):
+        for _ in range(len(self.availablePositions)-1):
             if self.gui_mode: self.showPlayerName(turn)
             self.detailedLogFile.write(self.encodeBoard()+",")
             position, nextPiece = (16,16)
@@ -326,28 +326,32 @@ class QuartoGame:
 
             # player 1
             if turn:
-                for i in range(3):
+                for j in range(3):
                     start_time = time.time()
                     position, nextPiece = self.player1.makeMove(self.getGameState(), self.gui_mode)
                     end_time = time.time()
                     validMove = self.makeMove(position, nextPiece)
                     if validMove: break
-                    elif i==2:
+                    elif j==2:
                         self.detailedLogFile.write("-1\n")
                         print("Three invalid moves made - game ended")
                         return -1 #player 1 made three invalid moves
+                self.agent1_cumulative_time += end_time - start_time
+                self.numMoves1 += 1
             # player 2
             else: 
-                for i in range(3):
+                for j in range(3):
                     start_time = time.time()
                     position, nextPiece = self.player2.makeMove(self.getGameState(), self.gui_mode)
                     end_time = time.time()
                     validMove = self.makeMove(position, nextPiece)
                     if validMove: break
-                    elif i==2:
+                    elif j==2:
                         self.detailedLogFile.write("-2\n")
                         print("Three invalid moves made - game ended")
                         return -2 #player 2 made three invalid moves
+                self.agent2_cumulative_time += end_time - start_time
+                self.numMoves2 += 1
 
             if self.gui_mode: self.showGameState()
             self.detailedLogFile.write(f'{position},{nextPiece},{round(end_time - start_time,4)}\n')
@@ -402,10 +406,12 @@ class QuartoGame:
         self.detailedLogFile = open("experiment_results/logs/" + curr_datetime + ".txt", mode="a")
         self.detailedLogFile.write(f"{self.player1Name},{self.player2Name},{num_times}\n")
 
-        for i in range(num_times):
-            start_time = time.time()
+        for _ in range(num_times):
+            self.agent1_cumulative_time = 0
+            self.agent2_cumulative_time = 0
+            self.numMoves1 = 0
+            self.numMoves2 = 0
             result = self.__playLogged()
-            end_time = time.time()
 
             if result == 1:
                 player1wins += 1
@@ -416,11 +422,8 @@ class QuartoGame:
             else:
                 print("Invalid move return. Table not updated.")    
             
-            logFile.write(f"{result},{round(end_time-start_time,4)}\n")
+            logFile.write(f"{result},{round(self.agent1_cumulative_time,4)},{round(self.agent2_cumulative_time,4)},{self.numMoves1},{self.numMoves2}\n")
             self.resetGame()
         
-
-        #update the stats table after all runs
-        logFile.write(f"{player1wins},{player2wins},{draws}")
         logFile.close()
         self.detailedLogFile.close()      
