@@ -30,6 +30,12 @@ class QuartoGame:
         self.availablePositions = set(range(16))
         self.moveHistory = list()
 
+        #logging metrics
+        self.agent1_cumulative_time = 0
+        self.agent2_cumulative_time = 0
+        self.numMoves1 = 0
+        self.numMoves2 = 0
+
     def checkAgentsValid(self, agent1, agent2):
         assert agent1 is not None and issubclass(type(agent1), qagents.GenericQuartoAgent), "Agent 1 is not initialized correctly."
         assert agent2 is not None and issubclass(type(agent1), qagents.GenericQuartoAgent), "Agent 2 is not initialized correctly."
@@ -40,6 +46,11 @@ class QuartoGame:
         self.availablePieces = set(range(16))
         self.availablePositions = set(range(16))
         self.moveHistory.clear()
+
+        self.agent1_cumulative_time = 0
+        self.agent2_cumulative_time = 0
+        self.numMoves1 = 0
+        self.numMoves2 = 0
     
     def encodeBoard(self):
         return qutil.encodeBoard(self.board, self.currentPiece)
@@ -257,25 +268,35 @@ class QuartoGame:
         # subsequent moves
         for _ in range(len(self.availablePositions)-1):
             if self.gui_mode: self.showPlayerName(turn)
+            start_time, end_time = 0, 0
 
             # player 1
             if turn:
                 for j in range(3):
+                    start_time = time.time()
                     position, nextPiece = self.player1.makeMove(self.getGameState(), self.gui_mode)
+                    end_time = time.time()
                     validMove = self.makeMove(position, nextPiece)
                     if validMove: break
                     elif j==2:
                         print("Three invalid moves made - game ended")
                         return -1 #player 1 made three invalid moves
+                self.agent1_cumulative_time += end_time - start_time
+                self.numMoves1 += 1
+
             # player 2
             else: 
                 for j in range(3):
+                    start_time = time.time()
                     position, nextPiece = self.player2.makeMove(self.getGameState(), self.gui_mode)
+                    end_time = time.time()
                     validMove = self.makeMove(position, nextPiece)
                     if validMove: break
                     elif j==2:
                         print("Three invalid moves made - game ended")
                         return -2 #player 2 made three invalid moves
+                self.agent2_cumulative_time += end_time - start_time
+                self.numMoves2 += 1
 
             if self.gui_mode: self.showGameState()
 
@@ -338,6 +359,7 @@ class QuartoGame:
                         return -1 #player 1 made three invalid moves
                 self.agent1_cumulative_time += end_time - start_time
                 self.numMoves1 += 1
+
             # player 2
             else: 
                 for j in range(3):
@@ -408,10 +430,6 @@ class QuartoGame:
         self.detailedLogFile.write(f"{self.player1Name},{self.player2Name},{num_times}\n")
 
         for _ in range(num_times):
-            self.agent1_cumulative_time = 0
-            self.agent2_cumulative_time = 0
-            self.numMoves1 = 0
-            self.numMoves2 = 0
             result = self.__playLogged()
 
             if result == 1:
