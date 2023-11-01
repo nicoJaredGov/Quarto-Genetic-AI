@@ -233,7 +233,7 @@ class GeneticMinmaxAgent(GenericQuartoAgent):
 
     #recursive function to update the fitness of the top N chromosomes
     def computeFitness(self, node, evaluation, i):
-        if self.fitnessCounter >= self.initialPopulationSize:
+        if self.fitnessCounter >= self.maxPopulationSize:
             return
         if node.is_leaf:
             self.fitness[node.name] = evaluation

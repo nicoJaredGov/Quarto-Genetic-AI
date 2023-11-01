@@ -234,12 +234,11 @@ class GeneticMinmaxAgentTest(GenericQuartoAgent):
 
     #recursive function to update the fitness of the top N chromosomes
     def computeFitness(self, node, evaluation, i):
-        if self.fitnessCounter >= self.initialPopulationSize:
+        if self.fitnessCounter >= self.maxPopulationSize:
             return
         if node.is_leaf:
             self.fitness[node.name] = evaluation
             self.fitnessCounter += 1
-            #print("ff ",self.fitnessCounter)
         else:
             for child in [n for n in node.children if n.value == evaluation]:
                 self.computeFitness(child, evaluation, i)
@@ -252,11 +251,21 @@ class GeneticMinmaxAgentTest(GenericQuartoAgent):
         #randomize initial population
         start_time = time.time()
         self.fitness.clear()
+        a1total = 0
+        a2total = 0
         for _ in range(self.initialPopulationSize):
+            start_time1 = time.time_ns()
             chromosome, leafEvaluation = self.createChromosome(quartoGameState)
+            end_time1 = time.time_ns()
+            a1total += end_time1 - start_time1
             self.fitness[chromosome] = 0
+            start_time1 = time.time_ns()
             self.reservationTree.addPath(chromosome, leafEvaluation)
+            end_time1 = time.time_ns()
+            a2total += end_time1 - start_time1
         end_time = time.time()
+        print(a1total/1000000000, " ns a-1")
+        print(a2total/1000000000, " ns a-2") 
         print(end_time - start_time, "seconds a")
         
         #print("initial: ", self.fitness, len(self.fitness))
@@ -267,8 +276,6 @@ class GeneticMinmaxAgentTest(GenericQuartoAgent):
             start_time = time.time()
             #perform crossover and mutation
             parents = self.fitness.keys()
-
-            print("here: ", self.maxPopulationSize - len(parents))
 
             for _ in range(self.maxPopulationSize - np.max([len(parents),self.initialPopulationSize])):
                 #random parent selection
@@ -322,7 +329,6 @@ class GeneticMinmaxAgentTest(GenericQuartoAgent):
             end_time = time.time()
             print(end_time - start_time, "seconds d")
 
-        #print("final fitness ", self.fitness)
         #self.reservationTree.showTree()
         bestMove = (int(bestChromosome[0]+bestChromosome[1]),int(bestChromosome[2]+bestChromosome[3]))
         return bestMove, finalEvaluation
