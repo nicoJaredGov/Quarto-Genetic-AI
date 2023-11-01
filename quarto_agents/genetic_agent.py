@@ -4,6 +4,7 @@ import numpy as np
 from bigtree.node.node import Node
 from copy import deepcopy
 from random import sample
+from math import factorial
 
 class GeneticMinmaxAgent(GenericQuartoAgent):
 
@@ -19,6 +20,10 @@ class GeneticMinmaxAgent(GenericQuartoAgent):
         self.initialPopulationSize = initialPopulationSize
         self.maxPopulationSize = maxPopulationSize
         self.fitness = dict()
+
+        #maxPossibleChromosomes
+        #n - number of positions available at a given state
+        self.numStates = lambda n: int((n*factorial(n-1)**2) / ((n-self.searchDepth)*factorial(n-self.searchDepth-1)**2))
 
 
     # Only used in debugging
@@ -247,6 +252,14 @@ class GeneticMinmaxAgent(GenericQuartoAgent):
         #initialize reservation tree
         self.reservationTree = ReservationTree()
         
+        #reduce initial population size to maximum possible moves explorable
+        numPossibleMoves = len(quartoGameState[3])
+        if numPossibleMoves >  self.searchDepth:
+            if self.numStates(numPossibleMoves) < self.initialPopulationSize:
+                self.initialPopulationSize = self.numStates(numPossibleMoves)
+        else:
+            self.initialPopulationSize = 2000
+
         #randomize initial population
         self.fitness.clear()
         for _ in range(self.initialPopulationSize):

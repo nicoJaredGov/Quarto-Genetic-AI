@@ -5,6 +5,7 @@ from bigtree.node.node import Node
 from copy import deepcopy
 from random import sample
 import time
+from math import factorial
 
 class GeneticMinmaxAgentTest(GenericQuartoAgent):
 
@@ -20,6 +21,9 @@ class GeneticMinmaxAgentTest(GenericQuartoAgent):
         self.initialPopulationSize = initialPopulationSize
         self.maxPopulationSize = maxPopulationSize
         self.fitness = dict()
+
+        #maxPossibleChromosomes
+        self.numStates = lambda n, d: int((n*factorial(n-1)**2) / ((n-d)*factorial(n-d-1)**2))
 
 
     # Only used in debugging
@@ -247,6 +251,19 @@ class GeneticMinmaxAgentTest(GenericQuartoAgent):
     def generateSolution(self, quartoGameState):
         #initialize reservation tree
         self.reservationTree = ReservationTree()
+
+        numPossibleMoves = len(quartoGameState[3])
+        if numPossibleMoves >  self.searchDepth:
+            maxPossibleStates= self.numStates(numPossibleMoves, self.searchDepth)
+            print("max ",maxPossibleStates)
+            if maxPossibleStates < self.initialPopulationSize:
+                print("prev: ", self.initialPopulationSize)
+                self.initialPopulationSize = maxPossibleStates
+                print("after: ", self.initialPopulationSize)
+        else:
+            print("prev: ", self.initialPopulationSize)
+            self.initialPopulationSize = 2000
+            print("after: ", self.initialPopulationSize)
   
         #randomize initial population
         start_time = time.time()
