@@ -257,13 +257,10 @@ class GeneticMinmaxAgentTest(GenericQuartoAgent):
             maxPossibleStates= self.numStates(numPossibleMoves, self.searchDepth)
             print("max ",maxPossibleStates)
             if maxPossibleStates < self.initialPopulationSize:
-                print("prev: ", self.initialPopulationSize)
+                print("prev: ", self.initialPopulationSize, self.maxPopulationSize)
                 self.initialPopulationSize = maxPossibleStates
-                print("after: ", self.initialPopulationSize)
-        else:
-            print("prev: ", self.initialPopulationSize)
-            self.initialPopulationSize = 2000
-            print("after: ", self.initialPopulationSize)
+                self.maxPopulationSize = int(1.5*maxPossibleStates)
+                print("after: ", self.initialPopulationSize, self.maxPopulationSize)
   
         #randomize initial population
         start_time = time.time()
@@ -293,6 +290,8 @@ class GeneticMinmaxAgentTest(GenericQuartoAgent):
             start_time = time.time()
             #perform crossover and mutation
             parents = self.fitness.keys()
+
+            print("HERE: ", len(parents),self.initialPopulationSize)
 
             for _ in range(self.maxPopulationSize - np.max([len(parents),self.initialPopulationSize])):
                 #random parent selection

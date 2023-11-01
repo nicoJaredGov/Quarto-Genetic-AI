@@ -255,10 +255,10 @@ class GeneticMinmaxAgent(GenericQuartoAgent):
         #reduce initial population size to maximum possible moves explorable
         numPossibleMoves = len(quartoGameState[3])
         if numPossibleMoves >  self.searchDepth:
-            if self.numStates(numPossibleMoves) < self.initialPopulationSize:
-                self.initialPopulationSize = self.numStates(numPossibleMoves)
-        else:
-            self.initialPopulationSize = 2000
+            maxPossibleStates = self.numStates(numPossibleMoves)
+            if maxPossibleStates < self.initialPopulationSize:
+                self.initialPopulationSize = maxPossibleStates
+                self.maxPopulationSize = int(1.5*maxPossibleStates)
 
         #randomize initial population
         self.fitness.clear()
