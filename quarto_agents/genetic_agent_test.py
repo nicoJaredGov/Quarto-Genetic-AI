@@ -164,18 +164,20 @@ class GeneticMinmaxAgentTest(GenericQuartoAgent):
         _, _, availableNextPieces, availablePositions = quartoGameState
         tempNextPieces = availableNextPieces.copy()
         tempPositions = availablePositions.copy()
+        chromosomeLength = self.searchDepth
 
         #generate random moves
         if len(tempNextPieces) < self.searchDepth:
             randomPieces = sample(tempNextPieces, len(tempNextPieces))
             randomPieces.append(16)
+            randomPositions = sample(tempPositions, len(tempPositions))
+            chromosomeLength = len(tempPositions)
         else:
             randomPieces = sample(tempNextPieces, self.searchDepth)
-
-        randomPositions = sample(tempPositions, self.searchDepth)
+            randomPositions = sample(tempPositions, self.searchDepth)
         
         newChromosome = ""
-        for i in range(self.searchDepth):
+        for i in range(chromosomeLength):
             randomPos = randomPositions[i]
             randomPiece = randomPieces[i]
             if randomPos <= 9:
@@ -382,7 +384,7 @@ class GeneticMinmaxAgentTest(GenericQuartoAgent):
             end_time = time.time()
             print(end_time - start_time, "seconds d")
 
-        self.reservationTree.showTree()
+        #self.reservationTree.showTree()
         bestMove = (int(bestChromosome[0]+bestChromosome[1]),int(bestChromosome[2]+bestChromosome[3]))
         return bestMove, finalEvaluation
 
