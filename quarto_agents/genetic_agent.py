@@ -2,7 +2,7 @@ from quarto_agents.generic_quarto_agent import GenericQuartoAgent
 import quarto_util as qutil
 import numpy as np
 from bigtree.node.node import Node
-from copy import deepcopy
+from copy import copy
 from random import sample
 from math import factorial
 
@@ -21,11 +21,6 @@ class GeneticMinmaxAgent(GenericQuartoAgent):
         self.maxPopulationSize = maxPopulationSize
         self.fitness = dict()
 
-        #maxPossibleChromosomes
-        #n - number of positions available at a given state
-        self.numStates = lambda n: int((n*factorial(n-1)**2) / ((n-self.searchDepth)*factorial(n-self.searchDepth-1)**2))
-
-
     # Only used in debugging
     def makeFirstMove(self, quartoGameState, gui_mode=False):
         nextPiece = int(input("Pick your opponent's first piece: "))
@@ -38,39 +33,45 @@ class GeneticMinmaxAgent(GenericQuartoAgent):
             print("maxEval: ", eval)
         return position, nextPiece
     
+    #maxPossibleChromosomes
+    def getNumStates(self, n):
+        #n - number of positions available at a given state
+        return int((n*factorial(n-1)**2) / ((n-self.searchDepth)*factorial(n-self.searchDepth-1)**2))
+    
     # Counts how many lines of three pieces with an identical property
-    def lineEvaluation(self, board, turn: bool):
+    def lineEvaluation(self, encoding, turn: bool):
+        board = [int(encoding[i]+encoding[i+1]) for i in range(0,len(encoding)-2,2)]
         tempLine = None
         numLines = 0
 
         for i in range(4):
             # check horizontal lines
-            tempLine = list(board[i])
-            if np.count_nonzero(board[i] == 16) == 1:
+            tempLine = board[4*i:4*(i+1)]
+            if tempLine.count(16) == 1:
                 tempLine.remove(16)
                 if qutil.matchingPropertyExists(tempLine):
                     numLines += 1
             
-            tempLine = list(board[:,i])
+            tempLine = board[i:len(board):4]
             # check vertical lines
-            if np.count_nonzero(board[:,i] == 16) == 1:
+            if tempLine.count(16) == 1:
                 tempLine.remove(16)
                 if qutil.matchingPropertyExists(tempLine):
                     numLines += 1
 
         # check obtuse diagonal line
-        tempLine = list(np.diag(board))
-        if np.count_nonzero(np.diag(board) == 16) == 1:
+        tempLine = board[0:len(board):5]
+        if tempLine.count(16) == 1:
             tempLine.remove(16)
             if qutil.matchingPropertyExists(tempLine):
-                    numLines += 1
+                numLines += 1
             
         # check acute diagonal line:
-        tempLine = list(np.diag(board[::-1]))
-        if np.count_nonzero(np.diag(board[::-1]) == 16) == 1:
+        tempLine = board[3:-1:3]
+        if tempLine.count(16) == 1:
             tempLine.remove(16)
             if qutil.matchingPropertyExists(tempLine):
-                    numLines += 1
+                numLines += 1
         
         if turn:
             return -numLines
@@ -104,29 +105,22 @@ class GeneticMinmaxAgent(GenericQuartoAgent):
         return movePath
     
     def createChromosome(self, quartoGameState):
-        board, currentPiece, availableNextPieces, availablePositions = quartoGameState
+        _, _, availableNextPieces, availablePositions = quartoGameState
         tempNextPieces = availableNextPieces.copy()
         tempPositions = availablePositions.copy()
-        tempBoard = deepcopy(board)
-        tempCurrentPiece = currentPiece
 
-        myTurn = True
-        isGameOver = False
+        #generate random moves
+        if len(tempNextPieces) < self.searchDepth:
+            randomPieces = sample(tempNextPieces, len(tempNextPieces))
+            randomPieces.append(16)
+        else:
+            randomPieces = sample(tempNextPieces, self.searchDepth)
+        randomPositions = sample(tempPositions, self.searchDepth)
+
         newChromosome = ""
-        evaluation = 0
-        for _ in range(self.searchDepth):
-            if len(tempPositions) <= 0:
-                break
-            if len(tempNextPieces) == 0:
-                tempNextPieces.add(16)
-
-            #generate random move
-            randomPos = sample(tempPositions, 1)[0]
-            randomPiece = sample(tempNextPieces, 1)[0]
-            tempPositions.remove(randomPos)
-            tempNextPieces.remove(randomPiece)
-
-            #add random move to new chromosome
+        for i in range(self.searchDepth):
+            randomPos = randomPositions[i]
+            randomPiece = randomPieces[i]
             if randomPos <= 9:
                 newChromosome += "0"+str(randomPos)
             else:
@@ -136,26 +130,8 @@ class GeneticMinmaxAgent(GenericQuartoAgent):
                 newChromosome += "0"+str(randomPiece)
             else:
                 newChromosome += str(randomPiece)
-
-            #update temporary board and temporary piece
-            row, col = qutil.get2dCoords(randomPos)
-            tempBoard[row][col] = tempCurrentPiece
-            tempCurrentPiece = randomPiece
-
-            #case when either play wins at a given state
-            if qutil.isGameOver(tempBoard):
-                isGameOver = True
-                if myTurn: evaluation = 10
-                else: evaluation = -10
-                break
-
-            myTurn = not myTurn
-
-        #case when no player has won
-        if not isGameOver:
-            evaluation = self.lineEvaluation(tempBoard, not myTurn)
-
-        return newChromosome, evaluation
+        
+        return newChromosome, self.evaluate(newChromosome, quartoGameState)
 
     #one-point crossover
     def crossover(self, chromosomeA, chromosomeB):
@@ -210,19 +186,23 @@ class GeneticMinmaxAgent(GenericQuartoAgent):
     def evaluate(self, chromosome, quartoGameState):
         movePath = [(int(chromosome[i]+chromosome[i+1]),int(chromosome[i+2]+chromosome[i+3])) for i in range(0,len(chromosome)-3,4)]
 
-        tempBoard = deepcopy(quartoGameState[0])
+        boardEncoding = qutil.encodeBoard(quartoGameState[0], quartoGameState[1])
         tempCurrentPiece = quartoGameState[1]
         evaluation = 0
         myTurn = True
         isGameOver = False
 
-        #update temporary board and temporary piece
+        #update board encoding and temporary piece
         for move in movePath:
-            row, col = qutil.get2dCoords(move[0])
-            tempBoard[row][col] = tempCurrentPiece
+            if tempCurrentPiece <= 9:
+                tempCurrentPiece = "0"+str(tempCurrentPiece)
+            else:
+                tempCurrentPiece = str(tempCurrentPiece)
+
+            boardEncoding = boardEncoding[:2*move[0]] + tempCurrentPiece + boardEncoding[2*move[0]+2:]
             tempCurrentPiece = move[1]
 
-            if qutil.isGameOver(tempBoard):
+            if qutil.isGameOverEncoding(boardEncoding):
                 isGameOver = True
                 if myTurn: evaluation = 10
                 else: evaluation = -10
@@ -232,7 +212,7 @@ class GeneticMinmaxAgent(GenericQuartoAgent):
 
         #case when no player has won
         if not isGameOver:
-            evaluation = self.lineEvaluation(tempBoard, not myTurn)
+            evaluation = self.lineEvaluation(boardEncoding, not myTurn)
     
         return evaluation
 
@@ -255,10 +235,10 @@ class GeneticMinmaxAgent(GenericQuartoAgent):
         #reduce initial population size to maximum possible moves explorable
         numPossibleMoves = len(quartoGameState[3])
         if numPossibleMoves >  self.searchDepth:
-            maxPossibleStates = self.numStates(numPossibleMoves)
+            maxPossibleStates = self.getNumStates(numPossibleMoves)
             if maxPossibleStates < self.initialPopulationSize:
-                self.initialPopulationSize = maxPossibleStates
-                self.maxPopulationSize = int(1.5*maxPossibleStates)
+                self.initialPopulationSize = int(1.5*maxPossibleStates)
+                self.maxPopulationSize = int(2*maxPossibleStates)
 
         #randomize initial population
         self.fitness.clear()
