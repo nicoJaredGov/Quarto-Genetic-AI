@@ -74,6 +74,36 @@ def isGameOver(board):
     # no winning line found
     return False
 
+def isGameOverEncoding(encoding):
+    board = [int(encoding[i]+encoding[i+1]) for i in range(0,len(encoding)-2,2)]
+    
+    for i in range(4):
+        #check horizontal lines
+        horizontal = board[4*i:4*(i+1)]
+        if 16 not in horizontal:
+            if matchingPropertyExists(horizontal):
+                return True
+            
+        #check vertical lines
+        vertical = board[i:len(board):4]
+        if 16 not in vertical:
+            if matchingPropertyExists(vertical):
+                return True
+
+    #check obtuse diagonal line
+    diagonal1 = board[0:len(board):5]
+    if 16 not in diagonal1:
+        if matchingPropertyExists(diagonal1):
+            return True
+        
+    #check acute diagonal line:
+    diagonal2 = board[3:-1:3]
+    if 16 not in diagonal2:
+        if matchingPropertyExists(diagonal2):
+            return True
+
+    return False
+
 # transposition table functions
 def createTable(file_name: str):
     df = pd.DataFrame(columns=['encoding', 'evaluation', 'movePos', 'movePiece'])
