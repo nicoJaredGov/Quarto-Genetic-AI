@@ -20,6 +20,7 @@ class GeneticMinmaxAgent(GenericQuartoAgent):
         self.initialPopulationSize = initialPopulationSize
         self.maxPopulationSize = maxPopulationSize
         self.fitness = dict()
+        self.fitnessCountLimit = maxPopulationSize
 
     # Only used in debugging
     def makeFirstMove(self, quartoGameState, gui_mode=False):
@@ -221,7 +222,7 @@ class GeneticMinmaxAgent(GenericQuartoAgent):
 
     #recursive function to update the fitness of the top N chromosomes
     def computeFitness(self, node, evaluation, i):
-        if self.fitnessCounter >= self.maxPopulationSize:
+        if self.fitnessCounter >= self.fitnessCountLimit:
             return
         if node.is_leaf:
             self.fitness[node.name] = evaluation
@@ -236,16 +237,21 @@ class GeneticMinmaxAgent(GenericQuartoAgent):
         self.reservationTree = ReservationTree()
         
         #reduce initial population size to maximum possible moves explorable
+        initialPopulationSize = self.initialPopulationSize
+        maxPopulationSize = self.maxPopulationSize
+        self.fitnessCountLimit = self.maxPopulationSize
+
         numPossibleMoves = len(quartoGameState[3])
         if numPossibleMoves >  self.searchDepth:
             maxPossibleStates = self.getNumStates(numPossibleMoves)
-            if maxPossibleStates < self.initialPopulationSize:
-                self.initialPopulationSize = int(1.5*maxPossibleStates)
-                self.maxPopulationSize = int(2*maxPossibleStates)
+            if maxPossibleStates < initialPopulationSize:
+                initialPopulationSize = int(1.5*maxPossibleStates)
+                maxPopulationSize = int(2*maxPossibleStates)
+                self.fitnessCountLimit = maxPopulationSize
 
         #randomize initial population
         self.fitness.clear()
-        for _ in range(self.initialPopulationSize):
+        for _ in range(initialPopulationSize):
             chromosome, leafEvaluation = self.createChromosome(quartoGameState)
             self.fitness[chromosome] = 0
             self.reservationTree.addPath(chromosome, leafEvaluation)
@@ -256,7 +262,7 @@ class GeneticMinmaxAgent(GenericQuartoAgent):
             #perform crossover and mutation
             parents = self.fitness.keys()
 
-            for _ in range(self.maxPopulationSize -  np.max([len(parents),self.initialPopulationSize])):
+            for _ in range(maxPopulationSize -  np.max([len(parents),initialPopulationSize])):
                 #random parent selection
                 a, b = sample(parents, 2)
                 
