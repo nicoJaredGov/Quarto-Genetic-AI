@@ -4,5 +4,4 @@ quarto-sim.ipynb
 quarto_agents/__pycache__
 ideas.txt
 tests.py
-/experiment_results/runs/
-/experiment_results/logs/
+/experiment_results/

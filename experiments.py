@@ -1,6 +1,7 @@
 from quarto import *
 import quarto_agents as qagents
 import multiprocessing as mp
+import os
 
 #listens for messages on the q, writes to file.
 def mpListener(filename, q):
@@ -56,11 +57,11 @@ def mpBatchRun(agent1: qagents.GenericQuartoAgent, agent2: qagents.GenericQuarto
 
 def negamax_tests():
     #search window and depth values
-    negamax_search = [128,256]
+    negamax_search = [64, 128, 256]
     negamax_depths = [2]
 
     #experiment control agent
-    geneticminmax = qagents.GeneticMinmaxAgent(searchDepth=3, maxGenerations=3, initialPopulationSize=4000, maxPopulationSize=5000)
+    geneticminmax = qagents.GeneticMinmaxAgent(searchDepth=3, maxGenerations=2, initialPopulationSize=5000, maxPopulationSize=6000)
     geneticminmax.setName("Control-Genetic")
 
     for s in negamax_search:
@@ -99,13 +100,20 @@ def genetic_tests():
             #half the runs as player 2
             mpBatchRun(negamax_agent, geneticminmax, 25, 4)
 
+#Opens up all files in the directory and summarizes data in graphs and tables
+def create_graphs(path_to_dir: str):
+    for filename in os.listdir(path_to_dir):
+        print(filename)
+
 def main():
     # geneticminmax = qagents.GeneticMinmaxAgentTest(searchDepth=3, maxGenerations=3, initialPopulationSize=20000, maxPopulationSize=30000)
     # negamax= qagents.NegamaxAgent(depth=3, searchWindow=32)
     # game = QuartoGame(negamax, geneticminmax, gui_mode=True, bin_mode=False)
     # game.playRandomFirst()
     
-    genetic_tests()
+    #negamax_tests()
+    #genetic_tests()
+    create_graphs('experiment_results/runs/')
           
 if __name__ == "__main__":
     main()
