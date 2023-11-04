@@ -141,7 +141,7 @@ def updateAgentStats(tableName: str, agentName: str, updatedRecord):
         df = df.append(record, ignore_index=True)    
     df.to_pickle(f'experiment_results/{tableName}.pkl')
 
-#Extracts data from detailed log files
+#Extracts data from detailed log file
 def readLogFile(filename):
     log = open(filename)
 
@@ -165,3 +165,12 @@ def readLogFile(filename):
     log.close()
 
     return (agent1, agent2), data, game_results
+
+#Extracts data from summative log file
+def readRunFile(filename):
+    log = open(filename)
+    agent1, agent2, _ = log.readline().split(',')
+    log.close()
+
+    df = pd.read_csv(filename, skiprows=1)
+    return (agent1, agent2), df
