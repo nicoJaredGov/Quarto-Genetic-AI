@@ -117,16 +117,21 @@ def createTable(file_name: str):
 
 #Used to create a pandas dataframe to store results for agents - linked to the name of an agent
 def createAgentStatsTable(tableName: str):
-    df = pd.DataFrame(columns=['agentName', 'searchDepth', 'wins', 'losses', 'draws', 'lossRate', 'averageMoveTime', 'averageGameTime'])
-    df.to_pickle(f'experiment_results/{tableName}.pkl')
+    df = pd.DataFrame(columns=['agentName', 'searchDepth', 'wins', 'losses', 'draws', 'cumulativeGameTime', 'cumulativeAvgMoveTime', 'numGamesPlayed'])
+    df.to_pickle(f'{tableName}.pkl')
 
 #Update an agent's stats after a game has been played - updatedRecord is in the form of a triplet (win, loss, draw) where 1 denotes the update for that and zero everywhere else
 def updateAgentStats(tableName: str, agentName: str, updatedRecord):
-    df = pd.read_pickle(f'experiment_results/{tableName}.pkl')
-
+    df = pd.read_pickle(f'{tableName}.pkl')
     searchDepth = agentName.split('-')[1]
     if agentName in df.agentName.values:
-        df.loc[df['agentName'] == agentName, ['wins', 'losses', 'draws', 'lossRate', 'averageMoveTime', 'averageGameTime']] += updatedRecord
+        df.loc[df['agentName'] == agentName, ['wins', 'losses', 'draws', 'cumulativeGameTime', 'cumulativeAvgMoveTime', 'numGamesPlayed']] += updatedRecord
+
+        df['searchDepth'] = df['searchDepth'].astype('int8')
+        df['wins'] = df['wins'].astype('int32')
+        df['losses'] = df['losses'].astype('int32')
+        df['draws'] = df['draws'].astype('int32')
+        df['numGamesPlayed'] = df['numGamesPlayed'].astype('int32')
     else:
         record = {
             'agentName': agentName,
@@ -134,12 +139,19 @@ def updateAgentStats(tableName: str, agentName: str, updatedRecord):
             'wins': updatedRecord[0],
             'losses': updatedRecord[1],
             'draws': updatedRecord[2],
-            'lossRate': updatedRecord[3],
-            'averageMoveTime': updatedRecord[4],
-            'averageGameTime': updatedRecord[5]
+            'cumulativeGameTime': updatedRecord[3],
+            'cumulativeAvgMoveTime': updatedRecord[4],
+            'numGamesPlayed': updatedRecord[5]
         }
-        df = df.append(record, ignore_index=True)    
-    df.to_pickle(f'experiment_results/{tableName}.pkl')
+        df = df.append(record, ignore_index=True)
+
+        df['searchDepth'] = df['searchDepth'].astype('int8')
+        df['wins'] = df['wins'].astype('int32')
+        df['losses'] = df['losses'].astype('int32')
+        df['draws'] = df['draws'].astype('int32')
+        df['numGamesPlayed'] = df['numGamesPlayed'].astype('int32')
+        
+    df.to_pickle(f'{tableName}.pkl')
 
 #Extracts data from detailed log file
 def readLogFile(filename):

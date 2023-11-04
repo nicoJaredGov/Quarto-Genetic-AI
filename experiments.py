@@ -62,7 +62,7 @@ def negamax_tests():
 
     #experiment control agent
     geneticminmax = qagents.GeneticMinmaxAgent(searchDepth=3, maxGenerations=2, initialPopulationSize=5000, maxPopulationSize=6000)
-    geneticminmax.setName("Control-Genetic")
+    geneticminmax.setName("ControlGenetic-3")
 
     for s in negamax_search:
         for d in negamax_depths:
@@ -102,8 +102,47 @@ def genetic_tests():
 
 #Opens up all files in the directory and summarizes data in graphs and tables
 def create_graphs(path_to_dir: str):
+    #create agent stats table
+    today = datetime.now()
+    table_path = f"experiment_results/agent_stats/{today.date()} {today.hour}_{today.minute}_{today.second}"
+    qutil.createAgentStatsTable(table_path)
+
     for filename in os.listdir(path_to_dir):
-        print(filename)
+        agents, df = qutil.readRunFile(path_to_dir+"/"+filename)
+        print(agents)
+
+        #summarize result data
+        resultCounts = df.result.value_counts()
+        totalDraws = resultCounts[0]
+        player1Wins = resultCounts[1]
+        player2Wins = resultCounts[2]
+
+        #aggregrate time data
+        df['player1avgTime'] = df['player1cumulativeTime'] / df['player1numMoves']
+        df['player2avgTime'] = df['player2cumulativeTime'] / df['player2numMoves']
+
+        #['wins', 'losses', 'draws', 'cumulativeGameTime', 'cumulativeAvgMoveTime', 'numGamesPlayed']
+        agent1Update = [
+            player1Wins,
+            player2Wins,
+            totalDraws,
+            df['player1cumulativeTime'].sum(),
+            df['player1avgTime'].sum(),
+            df.shape[0]
+        ]
+
+        agent2Update = [
+            player2Wins,
+            player1Wins,
+            totalDraws,
+            df['player2cumulativeTime'].sum(),
+            df['player2avgTime'].sum(),
+            df.shape[0]
+        ]
+        qutil.updateAgentStats(table_path, agents[0], agent1Update)
+        qutil.updateAgentStats(table_path, agents[1], agent2Update)
+
+
 
 def main():
     # geneticminmax = qagents.GeneticMinmaxAgentTest(searchDepth=3, maxGenerations=3, initialPopulationSize=20000, maxPopulationSize=30000)
