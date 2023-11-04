@@ -2,6 +2,7 @@ from quarto import *
 import quarto_agents as qagents
 import multiprocessing as mp
 import os
+import pandas as pd
 
 #listens for messages on the q, writes to file.
 def mpListener(filename, q):
@@ -101,12 +102,13 @@ def genetic_tests():
             mpBatchRun(negamax_agent, geneticminmax, 25, 4)
 
 #Opens up all files in the directory and summarizes data in graphs and tables
-def create_graphs(path_to_dir: str):
+def create_table(path_to_dir: str):
     #create agent stats table
     today = datetime.now()
     table_path = f"experiment_results/agent_stats/{today.date()} {today.hour}_{today.minute}_{today.second}"
     qutil.createAgentStatsTable(table_path)
 
+    #load data for each file into the table
     for filename in os.listdir(path_to_dir):
         agents, df = qutil.readRunFile(path_to_dir+"/"+filename)
         print(agents)
@@ -142,7 +144,16 @@ def create_graphs(path_to_dir: str):
         qutil.updateAgentStats(table_path, agents[0], agent1Update)
         qutil.updateAgentStats(table_path, agents[1], agent2Update)
 
+    #aggregate table data
+    agent_stats = pd.read_pickle(f'{table_path}.pkl')
+    agent_stats['winRate'] = agent_stats['wins'] / agent_stats['numGamesPlayed']
+    agent_stats['lossRate'] = agent_stats['losses'] / agent_stats['numGamesPlayed']
+    agent_stats['avgGameTime'] = agent_stats['cumulativeGameTime'] / agent_stats['numGamesPlayed']
+    agent_stats['avgMoveTime'] = agent_stats['cumulativeAvgMoveTime'] / agent_stats['numGamesPlayed']
+    agent_stats.to_pickle(f'{table_path}.pkl')
 
+def create_graphs():
+    pass
 
 def main():
     # geneticminmax = qagents.GeneticMinmaxAgentTest(searchDepth=3, maxGenerations=3, initialPopulationSize=20000, maxPopulationSize=30000)
@@ -152,7 +163,7 @@ def main():
     
     #negamax_tests()
     #genetic_tests()
-    create_graphs('experiment_results/runs/')
+    create_table('experiment_results/runs/')
           
 if __name__ == "__main__":
     main()
