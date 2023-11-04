@@ -152,7 +152,7 @@ def create_table(path_to_dir: str):
     agent_stats['avgMoveTime'] = agent_stats['cumulativeAvgMoveTime'] / agent_stats['numGamesPlayed']
     agent_stats.to_pickle(f'{table_path}.pkl')
 
-def create_graphs():
+def create_graphs(path_to_table: str):
     pass
 
 def main():

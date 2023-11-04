@@ -117,13 +117,20 @@ def createTable(file_name: str):
 
 #Used to create a pandas dataframe to store results for agents - linked to the name of an agent
 def createAgentStatsTable(tableName: str):
-    df = pd.DataFrame(columns=['agentName', 'searchDepth', 'wins', 'losses', 'draws', 'cumulativeGameTime', 'cumulativeAvgMoveTime', 'numGamesPlayed'])
+    df = pd.DataFrame(columns=['agentName', 'labelName', 'searchDepth', 'wins', 'losses', 'draws', 'cumulativeGameTime', 'cumulativeAvgMoveTime', 'numGamesPlayed'])
     df.to_pickle(f'{tableName}.pkl')
 
 #Update an agent's stats after a game has been played - updatedRecord is in the form of a triplet (win, loss, draw) where 1 denotes the update for that and zero everywhere else
 def updateAgentStats(tableName: str, agentName: str, updatedRecord):
     df = pd.read_pickle(f'{tableName}.pkl')
-    searchDepth = agentName.split('-')[1]
+    agentNameSplit = agentName.split('-')
+    searchDepth = agentNameSplit[1]
+    labelName = None
+    if len(agentNameSplit) < 3:
+        labelName = agentNameSplit[0]
+    else:
+        labelName = agentNameSplit[0]+"-"+agentNameSplit[2]
+
     if agentName in df.agentName.values:
         df.loc[df['agentName'] == agentName, ['wins', 'losses', 'draws', 'cumulativeGameTime', 'cumulativeAvgMoveTime', 'numGamesPlayed']] += updatedRecord
 
@@ -135,6 +142,7 @@ def updateAgentStats(tableName: str, agentName: str, updatedRecord):
     else:
         record = {
             'agentName': agentName,
+            'labelName': labelName,
             'searchDepth': searchDepth,
             'wins': updatedRecord[0],
             'losses': updatedRecord[1],
