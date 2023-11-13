@@ -28,7 +28,7 @@ def mpBatchRun(agent1: qagents.GenericQuartoAgent, agent2: qagents.GenericQuarto
 
     #create a new log file for these runs
     today = datetime.now()
-    filename = f"experiment_results/runs/{today.date()} {today.hour}_{today.minute}_{today.second} {agent1.name}_{agent2.name}.txt"
+    filename = f"experiment_results/final/{today.date()} {today.hour}_{today.minute}_{today.second} {agent1.name}_{agent2.name}.txt"
 
     #must use Manager queue here, or will not work
     manager = mp.Manager()
@@ -58,8 +58,8 @@ def mpBatchRun(agent1: qagents.GenericQuartoAgent, agent2: qagents.GenericQuarto
 
 def negamax_tests():
     #search window and depth values
-    negamax_search = [64, 128, 256]
-    negamax_depths = [2]
+    negamax_search = [16]
+    negamax_depths = [5]
 
     #experiment control agent
     geneticminmax = qagents.GeneticMinmaxAgent(searchDepth=3, maxGenerations=2, initialPopulationSize=5000, maxPopulationSize=6000)
@@ -71,22 +71,22 @@ def negamax_tests():
 
             start_time = time.time()
             #half the runs as player 1
-            mpBatchRun(negamax_agent, geneticminmax, 25, 4)
+            mpBatchRun(negamax_agent, geneticminmax, 12, 4)
             end_time = time.time()
             print("Batch run time: ", round(end_time - start_time,4))
 
             #half the runs as player 2
-            mpBatchRun(geneticminmax, negamax_agent, 25, 4)
+            mpBatchRun(geneticminmax, negamax_agent, 12, 4)
 
 def genetic_tests():
     #hyperparameters
-    genetic_depths = [3]
-    genetic_gens = [2]
-    initial_population, max_population = 10000, 12000
+    genetic_depths = [2]
+    genetic_gens = [1,2,3,5,10]
+    initial_population, max_population = 4000, 7000
 
     #experiment control agent
-    negamax_agent = qagents.NegamaxAgent(depth=3, searchWindow=32)
-    negamax_agent.setName("Control-Negamax")
+    negamax_agent = qagents.NegamaxAgent(depth=3, searchWindow=16)
+    negamax_agent.setName("ControlNegamax-3")
 
     for g in genetic_gens:
         for d in genetic_depths:
@@ -94,12 +94,37 @@ def genetic_tests():
 
             start_time = time.time()
             #half the runs as player 1
-            mpBatchRun(geneticminmax, negamax_agent, 25, 4)
+            mpBatchRun(geneticminmax, negamax_agent, 13, 4)
             end_time = time.time()
             print("Batch run time: ", round(end_time - start_time,4))
 
             #half the runs as player 2
-            mpBatchRun(negamax_agent, geneticminmax, 25, 4)
+            mpBatchRun(negamax_agent, geneticminmax, 13, 4)
+
+def vs_tests():
+    #history neg - (3,16), (3,32)
+    #history gen - (2,2,4000,7000), (2,10,4000,7000)
+
+    #hyperparameters
+    negamax_params = [(3,32)]
+    genetic_params = [(3,2,8000,12000)]
+
+    for p in range(len(negamax_params)):
+        negamax_param = negamax_params[p]
+        negamax_agent = qagents.NegamaxAgent(depth=negamax_param[0], searchWindow=negamax_param[1])
+
+        genetic_param = genetic_params[p]
+        d, g, initial_population, max_population = genetic_param
+        geneticminmax = qagents.GeneticMinmaxAgent(searchDepth=d, maxGenerations=g, initialPopulationSize=initial_population, maxPopulationSize=max_population)
+
+        start_time = time.time()
+        #half the runs as player 1
+        mpBatchRun(geneticminmax, negamax_agent, 5, 4)
+        end_time = time.time()
+        print("Batch run time: ", round(end_time - start_time,4))
+
+        #half the runs as player 2
+        mpBatchRun(negamax_agent, geneticminmax, 5, 4)
 
 #Opens up all files in the directory and summarizes data in graphs and tables
 def create_table(path_to_dir: str):
@@ -115,9 +140,12 @@ def create_table(path_to_dir: str):
 
         #summarize result data
         resultCounts = df.result.value_counts()
-        totalDraws = resultCounts[0]
-        player1Wins = resultCounts[1]
-        player2Wins = resultCounts[2]
+        if 0 in resultCounts: totalDraws = resultCounts[0]
+        else: totalDraws = 0
+        if 1 in resultCounts: player1Wins = resultCounts[1]
+        else: player1Wins = 0
+        if 2 in resultCounts: player2Wins = resultCounts[2]
+        else: player2Wins = 0
 
         #aggregrate time data
         df['player1avgTime'] = df['player1cumulativeTime'] / df['player1numMoves']
@@ -152,10 +180,8 @@ def create_table(path_to_dir: str):
     agent_stats['avgMoveTime'] = agent_stats['cumulativeAvgMoveTime'] / agent_stats['numGamesPlayed']
     agent_stats.to_pickle(f'{table_path}.pkl')
 
-def create_graphs(path_to_table: str):
-    pass
-
 def main():
+    #RUN YOUR TESTS HERE
     # geneticminmax = qagents.GeneticMinmaxAgentTest(searchDepth=3, maxGenerations=3, initialPopulationSize=20000, maxPopulationSize=30000)
     # negamax= qagents.NegamaxAgent(depth=3, searchWindow=32)
     # game = QuartoGame(negamax, geneticminmax, gui_mode=True, bin_mode=False)
@@ -163,7 +189,9 @@ def main():
     
     #negamax_tests()
     #genetic_tests()
-    create_table('experiment_results/runs/')
+    #vs_tests()
+    #create_table('experiment_results/final/')
+    pass
           
 if __name__ == "__main__":
     main()
