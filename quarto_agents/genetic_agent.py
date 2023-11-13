@@ -264,6 +264,8 @@ class GeneticMinmaxAgent(GenericQuartoAgent):
 
             for _ in range(maxPopulationSize -  np.max([len(parents),initialPopulationSize])):
                 #random parent selection
+                if len(parents) < 2:
+                    break
                 a, b = sample(parents, 2)
                 
                 #random mutation
