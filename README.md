@@ -1,15 +1,13 @@
 # Quarto Simulator and AI Implementations
 
-This repo is part of my Honours research project. 
+My Honours research project involved creating a Quarto game simulator that was capable of completely and accurately simulating the game's progress, then creating an artificial intelligence using a genetic algorithm and comparing this with an agent implemented using a conventional Minimax algorithm.
 
-Quarto is a two-player strategy board game that involves placing pieces on a 4x4 board.
-The pieces have different attributes, such as size, color, shape, and hollow or solid, and the goal is to place a piece that forms a line of four pieces with at least one common attribute. A unique aspect to this game is not only do you decide where to place your piece, but you also decide which piece the opponents has to place next. This process repeats until a winner is determined, as the first person to get 4 in a row of any feature, i.e. 4 short pieces or 4 squares.
+Quarto is a two-player strategy board game that involves placing pieces on a 4x4 grid. Each of the sixteen pieces have four binary attributes - colour (light/dark), shape (round/square), height (tall/short), and presence of hole (hollow/solid). The objective of the game is to place a piece that forms a line of four pieces with at least one common attribute. What makes Quarto interesting is that your opponent selects the piece you will place during your turn and vice versa. 
 
 Here is a useful link explaining the rules of the game: https://www.ultraboardgames.com/quarto/game-rules.php
 
-______________________
 ## QUARTO SIMULATOR GUIDE
-____
+---
 
 #### Bit representation (from left to right)
 | N^th^ Bit |   0   |   1   |
@@ -44,7 +42,7 @@ The last number is the current piece to place at that state of the board.
 
 #### Playing a game
 
-To play a game, you need to pick two agents that match the superclass of a generic Quarto agent and then call the play method. See below:
+To play a game, you need to pick two agents that match the superclass of a generic Quarto agent and then call the play method. A simple example can be seen below:
 ```py
 from quarto import *
 import quarto_agents as qagents
@@ -54,14 +52,14 @@ game.playRandomFirst()
 #game.play()
 ```
 
-There are currently two available premade agents: the human player agent which allows people to play by inputting moves, and a random agent which just selects random legal moves. You have the option of calling play() or playRandomFirst(). playRandomFirst() will play the first move (hence the first player's move) randomly, which involves randomly selecting a piece for Player 2. This is because that first move isn't really important and doesn't affect the game whatsoever.
+You have the option of calling play() or playRandomFirst(). playRandomFirst() will play the first move (hence the first player's move) randomly, which involves randomly selecting a piece for Player 2. This is because that first move isn't really important and doesn't affect the game whatsoever.
 
 gui_mode set to True shows a visual board after every move played.
 bin_mode set to True will show the pieces in binary form. Only works if gui_mode=True.
 
 #### Creating your own agent
 
-It is very simple to create your own agent by means of the API provided. Just inherit from the GenericQuartoAgent and override the two methods provided.
+It is very easy to create your own agent by means of the API provided. Just inherit from the GenericQuartoAgent and override the two methods provided.
 The game information received in those two methods is called quartoGameState. This is the structure of that data:
 ```
 [
@@ -74,4 +72,9 @@ The game information received in those two methods is called quartoGameState. Th
 You can reference the game state data structure like an array to get the appropriate data. Check with the quarto class getGameState() method to make sure you are receiving the correct information.
 
 After creating your agent and overriding those methods, just put your agent as an argument in the initialization of a quarto game.
+There are already a number of existing agents in the [quarto_agents](quarto_agents) directory. These include a human agent, random agent, negamax agent and genetic minimax agent.
+
+#### Quarto game GUI
+
+A playable GUI version of the game using the Quarto simulator as the backend is currently in development. Check the [gui.py](gui.py) file.
 
