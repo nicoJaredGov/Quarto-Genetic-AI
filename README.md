@@ -63,8 +63,7 @@ It is very easy to create your own agent by means of the API provided. Just inhe
 The game information received in those two methods is called quartoGameState. This is the structure of that data:
 ```
 [
-    current quarto board (4x4 numpy array),
-    current piece (integer),
+    game state encoding (string),
     available pieces (set of integers),
     available positions (set of integers)
 ]

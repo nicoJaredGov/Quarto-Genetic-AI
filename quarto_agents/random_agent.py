@@ -8,11 +8,11 @@ class RandomAgent(GenericQuartoAgent):
         super().setName("Random Agent")
 
     def makeFirstMove(self, quartoGameState, gui_mode=False):
-        nextPiece = random.choice(list(quartoGameState[2]))
+        nextPiece = random.choice(list(quartoGameState[1]))
         return nextPiece
     
     def makeMove(self, quartoGameState, gui_mode=False):
-        position = random.choice(list(quartoGameState[3]))
-        nextPiece = random.choice(list(quartoGameState[2]))
+        position = random.choice(list(quartoGameState[2]))
+        nextPiece = random.choice(list(quartoGameState[1]))
         if gui_mode: print(f"Random agent placed piece at cell {position} and nextPiece is {nextPiece}")
         return position, nextPiece
