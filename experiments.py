@@ -182,10 +182,11 @@ def create_table(path_to_dir: str):
 
 def main():
     #RUN YOUR TESTS HERE
-    # geneticminmax = qagents.GeneticMinmaxAgentTest(searchDepth=3, maxGenerations=3, initialPopulationSize=20000, maxPopulationSize=30000)
+    geneticminmax = qagents.GeneticMinmaxAgent(searchDepth=3, maxGenerations=3, initialPopulationSize=10000, maxPopulationSize=12000)
     # negamax= qagents.NegamaxAgent(depth=3, searchWindow=32)
-    # game = QuartoGame(negamax, geneticminmax, gui_mode=True, bin_mode=False)
-    # game.playRandomFirst()
+    #game = QuartoGame(negamax, geneticminmax, gui_mode=True, bin_mode=False)
+    game = QuartoGame(qagents.NegamaxAgent(depth=3, searchWindow=32), geneticminmax, gui_mode=True, bin_mode=False)
+    game.playRandomFirst()
     
     #negamax_tests()
     #genetic_tests()

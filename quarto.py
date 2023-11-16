@@ -5,7 +5,7 @@ from datetime import datetime
 import time
 
 class QuartoGame:
-    def __init__(self, agent1: qagents.GenericQuartoAgent, agent2: qagents.GenericQuartoAgent, player1Name=None, player2Name=None, gui_mode=True, bin_mode=False):
+    def __init__(self, agent1: qagents.GenericQuartoAgent, agent2: qagents.GenericQuartoAgent, player1Name=None, player2Name=None, gui_mode=False, bin_mode=False):
         '''
         agent1:
             Agent initialized for player 1. 
@@ -134,10 +134,9 @@ class QuartoGame:
         
     def getGameState(self):
         return (
-            self.board,
-            self.currentPiece,
-            self.availablePieces,
-            self.availablePositions
+            self.encodeBoard(),
+            self.availablePieces.copy(),
+            self.availablePositions.copy()
             )
     
     # This method is ONLY for the first move of the game (the first player's first move)

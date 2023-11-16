@@ -32,14 +32,13 @@ class NegamaxAgent(GenericQuartoAgent):
         return position, nextPiece
     
     def alphaBeta(self, quartoGameState, depth, alpha, beta):
-        board, currentPiece, availableNextPieces, availablePositions = quartoGameState
-        encoding = qutil.encodeBoard(board, currentPiece)
+        encoding, availableNextPieces, availablePositions = quartoGameState
         self.total += 1
         
-        if qutil.isGameOver(board):
+        if qutil.isGameOverEncoding(encoding):
             return -np.inf, (16,16)
         if depth == 0 or len(availablePositions) == 0:
-            return self.evaluation(board), (16,16)
+            return self.evaluation(encoding), (16,16)
         #check transposition table
         if self.tableFileName is not None:
             if encoding in self.table.encoding.values:
@@ -57,25 +56,25 @@ class NegamaxAgent(GenericQuartoAgent):
         The move ordering for the search window is as follows - We cycle through all available positions for a single next piece before considering
         another next piece. This way all positions are prioritized and explored first over exploring all next pieces for a single position.
         '''
-        # search window counter
-        counter = 0
-
+        searchWindowCounter = 0
         for move in itertools.product(availableNextPieces, availablePositions):
-            #search window increment and termination
-            counter += 1
-            if counter > self.searchWindow:
+            searchWindowCounter += 1
+            if searchWindowCounter > self.searchWindow:
                 break
 
             #switch move indices to match format: (position, nextPiece)
             move = (move[1],move[0])
 
-            #print("\ndepth:", depth,"move:", move)
             # simulate move
-            row, col = qutil.get2dCoords(move[0])
-            board[row][col] = currentPiece
+            tempCurrentPiece = move[1]
+            if tempCurrentPiece <= 9:
+                tempCurrentPiece = "0"+str(tempCurrentPiece)
+            else:
+                tempCurrentPiece = str(tempCurrentPiece)
+            tempEncoding = encoding[:2*move[0]] + encoding[-2:] + encoding[2*move[0]+2:-2] + tempCurrentPiece
             availablePositions.remove(move[0])
             availableNextPieces.remove(move[1])
-            nextGameState = (board, move[1], availableNextPieces, availablePositions)
+            nextGameState = (tempEncoding, availableNextPieces, availablePositions)
 
             # call for next turn
             cur = -self.alphaBeta(nextGameState, depth-1, -beta, -alpha)[0]
@@ -85,7 +84,6 @@ class NegamaxAgent(GenericQuartoAgent):
             alpha = max(alpha, maxScore)
             
             # undo simulated move
-            board[row][col] = 16
             availablePositions.add(move[0])
             availableNextPieces.add(move[1])
 
@@ -102,38 +100,39 @@ class NegamaxAgent(GenericQuartoAgent):
         return maxScore, bestMove
     
     # Counts how many lines of three pieces with an identical property
-    def evaluation(self, board):
+    def evaluation(self, encoding):
+        board = [int(encoding[i]+encoding[i+1]) for i in range(0,len(encoding)-2,2)]
         tempLine = None
         numLines = 0
 
         for i in range(4):
             # check horizontal lines
-            tempLine = list(board[i])
-            if np.count_nonzero(board[i] == 16) == 1:
+            tempLine = board[4*i:4*(i+1)]
+            if tempLine.count(16) == 1:
                 tempLine.remove(16)
                 if qutil.matchingPropertyExists(tempLine):
                     numLines += 1
             
-            tempLine = list(board[:,i])
+            tempLine = board[i:len(board):4]
             # check vertical lines
-            if np.count_nonzero(board[:,i] == 16) == 1:
+            if tempLine.count(16) == 1:
                 tempLine.remove(16)
                 if qutil.matchingPropertyExists(tempLine):
                     numLines += 1
 
         # check obtuse diagonal line
-        tempLine = list(np.diag(board))
-        if np.count_nonzero(np.diag(board) == 16) == 1:
+        tempLine = board[0:len(board):5]
+        if tempLine.count(16) == 1:
             tempLine.remove(16)
             if qutil.matchingPropertyExists(tempLine):
-                    numLines += 1
+                numLines += 1
             
         # check acute diagonal line:
-        tempLine = list(np.diag(board[::-1]))
-        if np.count_nonzero(np.diag(board[::-1]) == 16) == 1:
+        tempLine = board[3:-1:3]
+        if tempLine.count(16) == 1:
             tempLine.remove(16)
             if qutil.matchingPropertyExists(tempLine):
-                    numLines += 1
+                numLines += 1
         
         # no winning line found
         return numLines

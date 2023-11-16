@@ -106,7 +106,7 @@ class GeneticMinmaxAgent(GenericQuartoAgent):
         return movePath
     
     def createChromosome(self, quartoGameState):
-        _, _, availableNextPieces, availablePositions = quartoGameState
+        _, availableNextPieces, availablePositions = quartoGameState
         tempNextPieces = availableNextPieces.copy()
         tempPositions = availablePositions.copy()
         chromosomeLength = self.searchDepth
@@ -161,9 +161,9 @@ class GeneticMinmaxAgent(GenericQuartoAgent):
             mutationPoint = np.random.choice(pieces)
 
         if mutationPoint % 2 == 0: #move position
-            mutation = sample(quartoGameState[3], 1)[0] 
+            mutation = sample(quartoGameState[2], 1)[0] 
         else: #move nextPiece
-            mutation = sample(quartoGameState[2], 1)[0]
+            mutation = sample(quartoGameState[1], 1)[0]
 
         move = ""
         if mutation <= 9:
@@ -177,8 +177,8 @@ class GeneticMinmaxAgent(GenericQuartoAgent):
     
     def isValidChromosome(self, chromosome, quartoGameState):
         #check if chromosome is valid
-        positions = [int(chromosome[i:i+2]) for i in range(0,len(chromosome),4)] + list(set(range(16)) - quartoGameState[3])
-        nextPieces = [int(chromosome[i:i+2]) for i in range(2,len(chromosome),4)] + list(set(range(16)) - quartoGameState[2])
+        positions = [int(chromosome[i:i+2]) for i in range(0,len(chromosome),4)] + list(set(range(16)) - quartoGameState[2])
+        nextPieces = [int(chromosome[i:i+2]) for i in range(2,len(chromosome),4)] + list(set(range(16)) - quartoGameState[1])
         if len(set(positions)) < len(positions):
             return False
         if len(set(nextPieces)) < len(nextPieces):
@@ -190,8 +190,8 @@ class GeneticMinmaxAgent(GenericQuartoAgent):
     def evaluate(self, chromosome, quartoGameState):
         movePath = [(int(chromosome[i]+chromosome[i+1]),int(chromosome[i+2]+chromosome[i+3])) for i in range(0,len(chromosome)-3,4)]
 
-        boardEncoding = qutil.encodeBoard(quartoGameState[0], quartoGameState[1])
-        tempCurrentPiece = quartoGameState[1]
+        boardEncoding = quartoGameState[0]
+        tempCurrentPiece = int(boardEncoding[-2:])
         evaluation = 0
         myTurn = True
         isGameOver = False
@@ -241,7 +241,7 @@ class GeneticMinmaxAgent(GenericQuartoAgent):
         maxPopulationSize = self.maxPopulationSize
         self.fitnessCountLimit = self.maxPopulationSize
 
-        numPossibleMoves = len(quartoGameState[3])
+        numPossibleMoves = len(quartoGameState[2])
         if numPossibleMoves >  self.searchDepth:
             maxPossibleStates = self.getNumStates(numPossibleMoves)
             if maxPossibleStates < initialPopulationSize:
