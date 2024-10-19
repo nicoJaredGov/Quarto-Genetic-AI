@@ -2,7 +2,6 @@ from abc import ABC, abstractmethod
 from typing import Any
 
 class GenericQuartoAgent(ABC):
-
     @abstractmethod
     def makeFirstMove(self, quartoGameState, gui_mode) -> int:
         pass

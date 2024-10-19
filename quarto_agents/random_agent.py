@@ -2,7 +2,6 @@ from quarto_agents.generic_quarto_agent import GenericQuartoAgent
 from numpy import random
 
 class RandomAgent(GenericQuartoAgent):
-
     def __init__(self) -> None:
         super().__init__()
         super().setName("Random Agent")
