@@ -82,11 +82,7 @@ class QuartoGame:
         return piece
 
     def showBoard(self):
-        border = (
-            ".______.______.______.______."
-            if self.bin_mode
-            else ".____.____.____.____."
-        )
+        border = ".______.______.______.______." if self.bin_mode else ".____.____.____.____."
         for i in range(4):
             print(border)
             line = ""
@@ -173,19 +169,23 @@ class QuartoGame:
         if self.gui_mode:
             print("Last move successful")
 
+    def __logMoveTime(self, isPlayerOneTurn, startTime, endTime):
+        if isPlayerOneTurn:
+            self.agent1_cumulative_time += endTime - startTime
+            self.numMoves1 += 1
+        else:
+            self.agent2_cumulative_time += endTime - startTime
+            self.numMoves2 += 1
+
     def tryMakeMove(self, isPlayerOneTurn):
         for i in range(self.numRetriesAllowed):
             position, nextPiece = None, None
 
             startTime = time.time()
             if isPlayerOneTurn:
-                position, nextPiece = self.player1.makeMove(
-                    self.getGameState(), self.gui_mode
-                )
+                position, nextPiece = self.player1.makeMove(self.getGameState(), self.gui_mode)
             else:
-                position, nextPiece = self.player2.makeMove(
-                    self.getGameState(), self.gui_mode
-                )
+                position, nextPiece = self.player2.makeMove(self.getGameState(), self.gui_mode)
             endTime = time.time()
 
             if self.isValidMove(position, nextPiece):
@@ -209,17 +209,9 @@ class QuartoGame:
                 self.detailedLogFile.write(f"{identifier}\n")
             print(f"\nPlayer {identifier} ({playerName}) won!")
             return True
-        
+
     def pickRandomAvailablePiece(self):
         return np.random.choice(list(self.availablePieces))
-
-    def __logMoveTime(self, isPlayerOneTurn, startTime, endTime):
-        if isPlayerOneTurn:
-            self.agent1_cumulative_time += endTime - startTime
-            self.numMoves1 += 1
-        else:
-            self.agent2_cumulative_time += endTime - startTime
-            self.numMoves2 += 1
 
     def play(self, randomizeFirstMove=True):
         isPlayerOneTurn = True
@@ -239,7 +231,7 @@ class QuartoGame:
         # subsequent moves
         for _ in range(len(self.availablePositions) - 1):
             if self.gui_mode:
-                self.__showPlayerName(isPlayerOneTurn)         
+                self.__showPlayerName(isPlayerOneTurn)
             if not self.tryMakeMove(isPlayerOneTurn):
                 return -1 if isPlayerOneTurn else -2
             if self.gui_mode:
@@ -285,7 +277,7 @@ class QuartoGame:
             if self.gui_mode:
                 self.__showPlayerName(isPlayerOneTurn)
             self.detailedLogFile.write(self.encodeBoard() + ",")
-             
+
             if not self.tryMakeMove(isPlayerOneTurn):
                 if isPlayerOneTurn:
                     self.detailedLogFile.write("-1\n")
@@ -296,7 +288,7 @@ class QuartoGame:
 
             if self.gui_mode:
                 self.showGameState()
-            
+
             if self.isGameOver(isPlayerOneTurn):
                 return 1 if isPlayerOneTurn else 2
 
@@ -337,12 +329,8 @@ class QuartoGame:
             "result,player1cumulativeTime,player2cumulativeTime,player1numMoves,player2numMoves\n"
         )
 
-        self.detailedLogFile = open(
-            "experiment_results/logs/" + curr_datetime + ".txt", mode="a"
-        )
-        self.detailedLogFile.write(
-            f"{self.player1Name},{self.player2Name},{numTimes}\n"
-        )
+        self.detailedLogFile = open("experiment_results/logs/" + curr_datetime + ".txt", mode="a")
+        self.detailedLogFile.write(f"{self.player1Name},{self.player2Name},{numTimes}\n")
 
         for _ in range(numTimes):
             result = self.__playWithLogs()
