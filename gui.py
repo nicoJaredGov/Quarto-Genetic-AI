@@ -115,7 +115,6 @@ class QuartoGUI(tk.Tk):
                     bd=0,
                 )
                 self._pieces[(row,col)] = button
-                self.add_dragable(button)
                 button.grid(row=row, column=col, padx=5, pady=5)
 
     def makeMove(self, position, nextPiece):
@@ -137,14 +136,16 @@ class QuartoGUI(tk.Tk):
         self._game.moveHistory.append((position,nextPiece))
         
         #place piece on board and update game state
+        self.update_cell(position)
         row, col = qutil.get2dCoords(position)
-        self._game.board[row][col] = self.currentPiece
+        self._game.board[row][col] = self._game.currentPiece
         self._game.availablePositions.remove(position)
 
         #set next player's piece
-        self.currentPiece = nextPiece
-        self._game.availablePieces.remove(self.currentPiece)
-        
+        self.update_current(nextPiece)
+        self._game.currentPiece = nextPiece
+        self._game.availablePieces.remove(self._game.currentPiece)
+
         if self._game.gui_mode: print("Move successful")
         return True   
     
@@ -172,11 +173,8 @@ class QuartoGUI(tk.Tk):
 
                 for i in range(3):
                     position, nextPiece = self._game.player1.makeMove(self._game.getGameState())
-                    validMove = self._game.makeMove(position, nextPiece)
+                    validMove = self.makeMove(position, nextPiece)
                     if validMove:
-                        
-                        self.update_cell(position)
-                        self.update_current(nextPiece)
                         break
                     elif i==2:
                         print("Three invalid moves made - game ended")
@@ -188,11 +186,8 @@ class QuartoGUI(tk.Tk):
 
                 for i in range(3):
                     position, nextPiece = self._game.player2.makeMove(self._game.getGameState())
-                    validMove = self._game.makeMove(position, nextPiece)
+                    validMove = self.makeMove(position, nextPiece)
                     if validMove:
-                        self.display2['text'] = "Place current piece"
-                        self.update_cell(position)
-                        self.update_current(nextPiece)
                         break
                     elif i==2:
                         print("Three invalid moves made - game ended")
@@ -201,8 +196,12 @@ class QuartoGUI(tk.Tk):
             if self._game.gui_mode: self._game.showGameState()
 
             if (qutil.isGameOver(self._game.board)):
-                if turn: print(f"\nPlayer 1 ({self._game.player1Name}) won!")
-                else: print(f"\nPlayer 2 ({self._game.player2Name}) won!")
+                if turn: 
+                    self.display['text'] = "Player 1 Won!"
+                    self.display2['text'] = ""
+                else: 
+                    self.display['text'] = "Player 2 Won!"
+                    self.display2['text'] = ""
                 return
             turn = not turn
 
@@ -213,11 +212,16 @@ class QuartoGUI(tk.Tk):
         if self._game.gui_mode: self._game.showGameState()
 
         if (qutil.isGameOver(self._game.board)):
-            if turn: print(f"\nPlayer 1 ({self._game.player1Name}) won!")
-            else: print(f"\nPlayer 2 ({self._game.player2Name}) won!")
+            if turn: 
+                self.display['text'] = "Player 1 Won!"
+                self.display2['text'] = ""
+            else: 
+                self.display['text'] = "Player 2 Won!"
+                self.display2['text'] = ""
             return
         else:
-            print("\nDraw!")
+            self.display['text'] = "DRAW!"
+            self.display2['text'] = ""
         
     def update_current(self, piece):
         target = self.currentButton
@@ -245,47 +249,10 @@ class QuartoGUI(tk.Tk):
             button.config(highlightbackground="lightblue")
             button.config(text="")
             button.config(fg="black")
-    
-    ##drag and drop functionality
-    def add_dragable(self, widget):
-        widget.bind("<ButtonPress-1>", self.on_start)
-        widget.bind("<B1-Motion>", self.on_drag)
-        widget.bind("<ButtonRelease-1>", self.on_drop)
-        widget.configure(cursor="hand1")
-
-    def on_start(self, event):
-        # you could use this method to create a floating window
-        # that represents what is being dragged.
-        pass
-
-    def on_drag(self, event):
-        # you could use this method to move a floating window that
-        # represents what you're dragging
-        pass
-
-    def on_drop(self, event):
-        if self.moveTurnEnabled:
-            # find the widget under the cursor
-            x,y = event.widget.winfo_pointerxy()
-            target = event.widget.winfo_containing(x,y)
-            try:
-                if event.widget['state'] == "disabled":
-                    print("piece unavailable")
-                    return
-                if target in self.takenCells or target not in self._cells.values():
-                    print("Position unavailable")
-                    return
-                target.configure(image=event.widget.cget("image"), bg="#876c3e", text="")
-                self.takenCells.add(target)
-                event.widget.configure(state=tk.DISABLED)
-                self.takenPieces.add(event.widget)
-                    
-            except:
-                pass
 
 def main():
     """Create the game's board and run its main loop."""
-    game = QuartoGame(quarto_agents.RandomAgent(), quarto_agents.HumanPlayer(), gui_mode=True, bin_mode=False)
+    game = QuartoGame(quarto_agents.HumanPlayer(), quarto_agents.RandomAgent(), gui_mode=True, bin_mode=False)
     gui = QuartoGUI(game)
     gui.mainloop()
 
