@@ -4,6 +4,7 @@ import quarto_agents.generic_quarto_agent as qagents
 from datetime import datetime
 import time
 
+
 class QuartoGame:
     def __init__(
         self,
@@ -58,67 +59,58 @@ class QuartoGame:
         self.player1Name = self.player1.name if self.player1.name is not None else name1
         self.player2Name = self.player2.name if self.player2.name is not None else name2
 
-    def showPlayerName(self, turn):
-        # turn
-        # True = player 1
-        # False = player 2
-        if turn:
+    def __showPlayerName(self, isPlayerOneTurn):
+        if isPlayerOneTurn:
             print(f"\n ------{self.player1Name}'s Turn---------\n")
         else:
             print(f"\n ------{self.player2Name}'s Turn---------\n")
 
-    def showBoard(self):
+    def __getPieceToShow(self, i, j):
+        piece = str(self.board[i][j])
         if self.bin_mode:
-            for i in range(4):
-                print(".______.______.______.______.")
-                line = ""
-                for j in range(4):
-                    piece = str(self.board[i][j])
-                    if piece == "16":
-                        piece = f"({qutil.getLinearCoords(i,j)})"
-                    else:
-                        piece = f"{self.board[i][j]:04b}"
-
-                    if len(piece) == 4:
-                        if j == 3:
-                            line += "| " + piece + " |"
-                        else:
-                            line += "| " + piece + " "
-                    else:
-                        if j == 3:
-                            line += "| " + piece + "  |"
-                        else:
-                            line += "| " + piece + "  "
-                print(line)
-            print(".______.______.______.______.\n")
+            if piece == "16":
+                piece = f"({qutil.getLinearCoords(i,j)})"
+            else:
+                piece = f"{self.board[i][j]:04b}"
         else:
-            for i in range(4):
-                print("._____._____._____._____.")
-                line = ""
-                for j in range(4):
-                    piece = str(self.board[i][j])
-                    if piece == "16":
-                        piece = "  "
+            if piece == "16":
+                piece = "  "
 
-                    if len(piece) == 2:
-                        if j == 3:
-                            line += "|  " + piece + " |"
-                        else:
-                            line += "|  " + piece + " "
+        return piece
+
+    def showBoard(self):
+        border = (
+            ".______.______.______.______."
+            if self.bin_mode
+            else ".____.____.____.____."
+        )
+        for i in range(4):
+            print(border)
+            line = ""
+            for j in range(4):
+                piece = self.__getPieceToShow(i, j)
+
+                if len(piece) == 2 or len(piece) == 4:
+                    if j == 3:
+                        line += "| " + piece + " |"
                     else:
-                        if j == 3:
-                            line += "|  " + piece + "  |"
-                        else:
-                            line += "|  " + piece + "  "
-                print(line)
-            print("._____._____._____._____.\n")
+                        line += "| " + piece + " "
+                else:
+                    if j == 3:
+                        line += "| " + piece + "  |"
+                    else:
+                        line += "| " + piece + "  "
+            print(line)
+        print(border + "\n")
 
     def showGameInformation(self):
-        print("current piece to place: ", self.currentPiece)
-        print("available pieces: ", self.availablePieces)
-        print("available positions: ", self.availablePositions)
-        print("\nmove history: ", self.moveHistory)
-        print("\n")
+        print(
+            "current piece to place: ", self.currentPiece,
+            "\navailable pieces: ", self.availablePieces,
+            "\navailable positions: ", self.availablePositions,
+            "\nmove history: ", self.moveHistory,
+            "\n",
+        )
 
     def showGameState(self):
         self.showBoard()
@@ -188,7 +180,7 @@ class QuartoGame:
     def play(self):
         turn = True  # player 1 - True, player 2 - False
         if self.gui_mode:
-            self.showPlayerName(turn)
+            self.__showPlayerName(turn)
 
         # first move
         first_move = self.player1.makeFirstMove(self.getGameState(), self.gui_mode)
@@ -201,7 +193,7 @@ class QuartoGame:
         # subsequent moves
         for i in range(len(self.availablePositions) - 1):
             if self.gui_mode:
-                self.showPlayerName(turn)
+                self.__showPlayerName(turn)
 
             # player 1
             if turn:
@@ -243,7 +235,7 @@ class QuartoGame:
 
         # Place last piece and set nextPiece to nothing
         if self.gui_mode:
-            self.showPlayerName(turn)
+            self.__showPlayerName(turn)
         self.makeLastMove()
 
         if self.gui_mode:
@@ -264,7 +256,7 @@ class QuartoGame:
     def playRandomFirst(self):
         turn = True  # player 1 - True, player 2 - False
         if self.gui_mode:
-            self.showPlayerName(turn)
+            self.__showPlayerName(turn)
 
         # player 1's choice of next piece is randomly chosen
         self.makeFirstMove(self.pickRandomPiece())
@@ -276,7 +268,7 @@ class QuartoGame:
         # subsequent moves
         for _ in range(len(self.availablePositions) - 1):
             if self.gui_mode:
-                self.showPlayerName(turn)
+                self.__showPlayerName(turn)
             start_time, end_time = 0, 0
 
             # player 1
@@ -328,7 +320,7 @@ class QuartoGame:
 
         # Place last piece and set nextPiece to nothing
         if self.gui_mode:
-            self.showPlayerName(turn)
+            self.__showPlayerName(turn)
         self.makeLastMove()
 
         if self.gui_mode:
@@ -348,7 +340,7 @@ class QuartoGame:
     def __playLogged(self):
         turn = True  # player 1 - True, player 2 - False
         if self.gui_mode:
-            self.showPlayerName(turn)
+            self.__showPlayerName(turn)
 
         # player 1's choice of next piece is randomly chosen
         self.makeFirstMove(self.pickRandomPiece())
@@ -361,7 +353,7 @@ class QuartoGame:
         # subsequent moves
         for _ in range(len(self.availablePositions) - 1):
             if self.gui_mode:
-                self.showPlayerName(turn)
+                self.__showPlayerName(turn)
             self.detailedLogFile.write(self.encodeBoard() + ",")
             position, nextPiece = (16, 16)
             start_time, end_time = 0, 0
@@ -423,7 +415,7 @@ class QuartoGame:
 
         # Place last piece and set nextPiece to nothing
         if self.gui_mode:
-            self.showPlayerName(turn)
+            self.__showPlayerName(turn)
         self.detailedLogFile.write(
             f"{self.encodeBoard()},{list(self.availablePositions)[0]},None,None\n"
         )
