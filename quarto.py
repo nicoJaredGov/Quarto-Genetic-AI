@@ -15,6 +15,7 @@ class QuartoGame:
         gui_mode=False,
         bin_mode=False,
         log_stats=False,
+        numRetriesAllowed=3,
     ):
 
         # additional configuration
@@ -24,6 +25,8 @@ class QuartoGame:
         self.setPlayerNames(player1Name, player2Name)
         self.gui_mode = gui_mode  # show graphical view of board
         self.bin_mode = bin_mode  # if terminal view is shown, replace integer piece representation with binary representation
+        self.log_stats = log_stats
+        self.numRetriesAllowed = numRetriesAllowed
 
         # game state
         self.moveHistory = list()
@@ -105,10 +108,14 @@ class QuartoGame:
 
     def showGameInformation(self):
         print(
-            "current piece to place: ", self.currentPiece,
-            "\navailable pieces: ", self.availablePieces,
-            "\navailable positions: ", self.availablePositions,
-            "\nmove history: ", self.moveHistory,
+            "current piece to place: ",
+            self.currentPiece,
+            "\navailable pieces: ",
+            self.availablePieces,
+            "\navailable positions: ",
+            self.availablePositions,
+            "\nmove history: ",
+            self.moveHistory,
             "\n",
         )
 
@@ -123,7 +130,6 @@ class QuartoGame:
             self.availablePositions.copy(),
         )
 
-    # This method is ONLY for the first move of the game (the first player's first move)
     def makeFirstMove(self, nextPiece):
         self.currentPiece = nextPiece
         self.availablePieces.remove(self.currentPiece)
@@ -131,291 +137,176 @@ class QuartoGame:
         if self.gui_mode:
             print("First move successful")
 
-    # This method is for every move after than the first one
-    def makeMove(self, position, nextPiece):
-        # validation checks
+    def isValidMove(self, position, nextPiece):
         if position not in range(16):
             print("This position does not exist\n")
-            return
+            return False
         if nextPiece not in range(16):
             print("This piece does not exist\n")
-            return
+            return False
         if position not in self.availablePositions:
             print("This cell is unavailable\n")
             return False
         if nextPiece not in self.availablePieces:
             print("This piece has already been placed or will be placed now\n")
             return False
+        return True
 
-        # add to move history
+    def __makeMove(self, position, nextPiece):
         self.moveHistory.append((position, nextPiece))
-
-        # place piece on board and update game state
         row, col = qutil.get2dCoords(position)
         self.board[row][col] = self.currentPiece
         self.availablePositions.remove(position)
 
-        # set next player's piece
         self.currentPiece = nextPiece
         self.availablePieces.remove(self.currentPiece)
 
         if self.gui_mode:
             print("Move successful")
-        return True
 
-    # This method is for automatically placing the last piece in the last position
     def makeLastMove(self):
-        # get last available position and place final piece there
         lastPosition = self.availablePositions.pop()
         row, col = qutil.get2dCoords(lastPosition)
         self.board[row][col] = self.currentPiece
         self.moveHistory.append((lastPosition, None))
+
         if self.gui_mode:
             print("Last move successful")
 
-    # Pick random piece from available pieces
-    def pickRandomPiece(self):
+    def tryMakeMove(self, isPlayerOneTurn):
+        for i in range(self.numRetriesAllowed):
+            position, nextPiece = None, None
+
+            startTime = time.time()
+            if isPlayerOneTurn:
+                position, nextPiece = self.player1.makeMove(
+                    self.getGameState(), self.gui_mode
+                )
+            else:
+                position, nextPiece = self.player2.makeMove(
+                    self.getGameState(), self.gui_mode
+                )
+            endTime = time.time()
+
+            if self.isValidMove(position, nextPiece):
+                self.__makeMove(position, nextPiece)
+                if self.log_stats:
+                    self.__logMoveTime(isPlayerOneTurn, startTime, endTime)
+                    self.detailedLogFile.write(
+                        f"{position},{nextPiece},{round(endTime - startTime,4)}\n"
+                    )
+                return True
+            elif i == self.numRetriesAllowed - 1:
+                print(f"{self.numRetriesAllowed} invalid moves made - game ended")
+                return False
+
+    def isGameOver(self, isPlayerOneTurn):
+        identifier = 1 if isPlayerOneTurn else 2
+        playerName = self.player1Name if isPlayerOneTurn else self.player2Name
+
+        if qutil.isGameOver(self.board):
+            if self.log_stats:
+                self.detailedLogFile.write(f"{identifier}\n")
+            print(f"\nPlayer {identifier} ({playerName}) won!")
+            return True
+        
+    def pickRandomAvailablePiece(self):
         return np.random.choice(list(self.availablePieces))
 
-    def play(self):
-        turn = True  # player 1 - True, player 2 - False
+    def __logMoveTime(self, isPlayerOneTurn, startTime, endTime):
+        if isPlayerOneTurn:
+            self.agent1_cumulative_time += endTime - startTime
+            self.numMoves1 += 1
+        else:
+            self.agent2_cumulative_time += endTime - startTime
+            self.numMoves2 += 1
+
+    def play(self, randomizeFirstMove=True):
+        isPlayerOneTurn = True
         if self.gui_mode:
-            self.__showPlayerName(turn)
+            self.__showPlayerName(isPlayerOneTurn)
 
         # first move
-        first_move = self.player1.makeFirstMove(self.getGameState(), self.gui_mode)
-        self.makeFirstMove(first_move)
-        turn = False
-
-        if self.gui_mode:
-            self.showGameState()
-
-        # subsequent moves
-        for i in range(len(self.availablePositions) - 1):
-            if self.gui_mode:
-                self.__showPlayerName(turn)
-
-            # player 1
-            if turn:
-                for i in range(3):
-                    position, nextPiece = self.player1.makeMove(
-                        self.getGameState(), self.gui_mode
-                    )
-                    validMove = self.makeMove(position, nextPiece)
-                    if validMove:
-                        break
-                    elif i == 2:
-                        print("Three invalid moves made - game ended")
-                        return -1  # player 1 made three invalid moves
-            # player 2
-            else:
-                for i in range(3):
-                    position, nextPiece = self.player2.makeMove(
-                        self.getGameState(), self.gui_mode
-                    )
-                    validMove = self.makeMove(position, nextPiece)
-                    if validMove:
-                        break
-                    elif i == 2:
-                        print("Three invalid moves made - game ended")
-                        return -2  # player 2 made three invalid moves
-
-            if self.gui_mode:
-                self.showGameState()
-
-            if qutil.isGameOver(self.board):
-                if turn:
-                    print(f"\nPlayer 1 ({self.player1Name}) won!")
-                    return 1  # player 1 has won
-                else:
-                    print(f"\nPlayer 2 ({self.player2Name}) won!")
-                    return 2  # player 2 has won
-
-            turn = not turn
-
-        # Place last piece and set nextPiece to nothing
-        if self.gui_mode:
-            self.__showPlayerName(turn)
-        self.makeLastMove()
-
-        if self.gui_mode:
-            self.showGameState()
-
-        if qutil.isGameOver(self.board):
-            if turn:
-                print(f"\nPlayer 1 ({self.player1Name}) won!")
-                return 1
-            else:
-                print(f"\nPlayer 2 ({self.player2Name}) won!")
-                return 2
-            return
+        if randomizeFirstMove:
+            self.makeFirstMove(self.pickRandomAvailablePiece())
         else:
-            print("\nDraw!")
-            return 0
-
-    def playRandomFirst(self):
-        turn = True  # player 1 - True, player 2 - False
-        if self.gui_mode:
-            self.__showPlayerName(turn)
-
-        # player 1's choice of next piece is randomly chosen
-        self.makeFirstMove(self.pickRandomPiece())
-        turn = False
-
+            first_move = self.player1.makeFirstMove(self.getGameState(), self.gui_mode)
+            self.makeFirstMove(first_move)
+        isPlayerOneTurn = False
         if self.gui_mode:
             self.showGameState()
 
         # subsequent moves
         for _ in range(len(self.availablePositions) - 1):
             if self.gui_mode:
-                self.__showPlayerName(turn)
-            start_time, end_time = 0, 0
-
-            # player 1
-            if turn:
-                for j in range(3):
-                    start_time = time.time()
-                    position, nextPiece = self.player1.makeMove(
-                        self.getGameState(), self.gui_mode
-                    )
-                    end_time = time.time()
-                    validMove = self.makeMove(position, nextPiece)
-                    if validMove:
-                        break
-                    elif j == 2:
-                        print("Three invalid moves made - game ended")
-                        return -1  # player 1 made three invalid moves
-                self.agent1_cumulative_time += end_time - start_time
-                self.numMoves1 += 1
-
-            # player 2
-            else:
-                for j in range(3):
-                    start_time = time.time()
-                    position, nextPiece = self.player2.makeMove(
-                        self.getGameState(), self.gui_mode
-                    )
-                    end_time = time.time()
-                    validMove = self.makeMove(position, nextPiece)
-                    if validMove:
-                        break
-                    elif j == 2:
-                        print("Three invalid moves made - game ended")
-                        return -2  # player 2 made three invalid moves
-                self.agent2_cumulative_time += end_time - start_time
-                self.numMoves2 += 1
-
+                self.__showPlayerName(isPlayerOneTurn)         
+            if not self.tryMakeMove(isPlayerOneTurn):
+                return -1 if isPlayerOneTurn else -2
             if self.gui_mode:
                 self.showGameState()
 
-            if qutil.isGameOver(self.board):
-                if turn:
-                    print(f"\nPlayer 1 ({self.player1Name}) won!")
-                    return 1  # player 1 has won
-                else:
-                    print(f"\nPlayer 2 ({self.player2Name}) won!")
-                    return 2  # player 2 has won
+            if self.isGameOver(isPlayerOneTurn):
+                return 1 if isPlayerOneTurn else 2
 
-            turn = not turn
+            isPlayerOneTurn = not isPlayerOneTurn
 
         # Place last piece and set nextPiece to nothing
         if self.gui_mode:
-            self.__showPlayerName(turn)
+            self.__showPlayerName(isPlayerOneTurn)
         self.makeLastMove()
 
         if self.gui_mode:
             self.showGameState()
 
-        if qutil.isGameOver(self.board):
-            if turn:
-                print(f"\nPlayer 1 ({self.player1Name}) won!")
-                return 1
-            else:
-                print(f"\nPlayer 2 ({self.player2Name}) won!")
-                return 2
+        if self.isGameOver(isPlayerOneTurn):
+            return 1 if isPlayerOneTurn else 2
         else:
             print("\nDraw!")
             return 0
 
-    def __playLogged(self):
-        turn = True  # player 1 - True, player 2 - False
-        if self.gui_mode:
-            self.__showPlayerName(turn)
+    def __playWithLogs(self, randomizeFirstMove=True):
+        self.log_stats = True
 
-        # player 1's choice of next piece is randomly chosen
-        self.makeFirstMove(self.pickRandomPiece())
-        turn = False
+        isPlayerOneTurn = True
+        if self.gui_mode:
+            self.__showPlayerName(isPlayerOneTurn)
+
+        # first move
+        if randomizeFirstMove:
+            self.makeFirstMove(self.pickRandomAvailablePiece())
+        else:
+            first_move = self.player1.makeFirstMove(self.getGameState(), self.gui_mode)
+            self.makeFirstMove(first_move)
+        isPlayerOneTurn = False
         self.detailedLogFile.write(str(self.moveHistory[-1]) + "\n")
-
         if self.gui_mode:
             self.showGameState()
 
         # subsequent moves
         for _ in range(len(self.availablePositions) - 1):
             if self.gui_mode:
-                self.__showPlayerName(turn)
+                self.__showPlayerName(isPlayerOneTurn)
             self.detailedLogFile.write(self.encodeBoard() + ",")
-            position, nextPiece = (16, 16)
-            start_time, end_time = 0, 0
-
-            # player 1
-            if turn:
-                for j in range(3):
-                    start_time = time.time()
-                    position, nextPiece = self.player1.makeMove(
-                        self.getGameState(), self.gui_mode
-                    )
-                    end_time = time.time()
-                    validMove = self.makeMove(position, nextPiece)
-                    if validMove:
-                        break
-                    elif j == 2:
-                        self.detailedLogFile.write("-1\n")
-                        print("Three invalid moves made - game ended")
-                        return -1  # player 1 made three invalid moves
-                self.agent1_cumulative_time += end_time - start_time
-                self.numMoves1 += 1
-
-            # player 2
-            else:
-                for j in range(3):
-                    start_time = time.time()
-                    position, nextPiece = self.player2.makeMove(
-                        self.getGameState(), self.gui_mode
-                    )
-                    end_time = time.time()
-                    validMove = self.makeMove(position, nextPiece)
-                    if validMove:
-                        break
-                    elif j == 2:
-                        self.detailedLogFile.write("-2\n")
-                        print("Three invalid moves made - game ended")
-                        return -2  # player 2 made three invalid moves
-                self.agent2_cumulative_time += end_time - start_time
-                self.numMoves2 += 1
+             
+            if not self.tryMakeMove(isPlayerOneTurn):
+                if isPlayerOneTurn:
+                    self.detailedLogFile.write("-1\n")
+                    return -1
+                else:
+                    self.detailedLogFile.write("-2\n")
+                    return -2
 
             if self.gui_mode:
                 self.showGameState()
-            self.detailedLogFile.write(
-                f"{position},{nextPiece},{round(end_time - start_time,4)}\n"
-            )
+            
+            if self.isGameOver(isPlayerOneTurn):
+                return 1 if isPlayerOneTurn else 2
 
-            if qutil.isGameOver(self.board):
-                self.detailedLogFile.write(self.encodeBoard() + "\n")
-                if turn:
-                    self.detailedLogFile.write("1\n")
-                    print(f"\nPlayer 1 ({self.player1Name}) won!")
-                    return 1  # player 1 has won
-                else:
-                    self.detailedLogFile.write("2\n")
-                    print(f"\nPlayer 2 ({self.player2Name}) won!")
-                    return 2  # player 2 has won
-
-            turn = not turn
+            isPlayerOneTurn = not isPlayerOneTurn
 
         # Place last piece and set nextPiece to nothing
         if self.gui_mode:
-            self.__showPlayerName(turn)
+            self.__showPlayerName(isPlayerOneTurn)
         self.detailedLogFile.write(
             f"{self.encodeBoard()},{list(self.availablePositions)[0]},None,None\n"
         )
@@ -425,44 +316,35 @@ class QuartoGame:
             self.showGameState()
         self.detailedLogFile.write(self.encodeBoard() + "\n")
 
-        if qutil.isGameOver(self.board):
-            if turn:
-                self.detailedLogFile.write("1\n")
-                print(f"\nPlayer 1 ({self.player1Name}) won!")
-                return 1
-            else:
-                self.detailedLogFile.write("2\n")
-                print(f"\nPlayer 2 ({self.player2Name}) won!")
-                return 2
+        if self.isGameOver(isPlayerOneTurn):
+            return 1 if isPlayerOneTurn else 2
         else:
             self.detailedLogFile.write("0\n")
             print("\nDraw!")
             return 0
 
-    def runMultiple(self, num_times):
+    def playMultipleGames(self, numTimes):
         player1wins = 0
         player2wins = 0
         draws = 0
 
-        # create a new log file for these runs
         today = datetime.now()
         curr_datetime = f"{today.date()} {today.hour}_{today.minute}_{today.second} {self.player1Name}_{self.player2Name}"
         logFile = open("experiment_results/runs/" + curr_datetime + ".txt", mode="a")
-        logFile.write(f"{self.player1Name},{self.player2Name},{num_times}\n")
+        logFile.write(f"{self.player1Name},{self.player2Name},{numTimes}\n")
         logFile.write(
-            f"result,player1cumulativeTime,player2cumulativeTime,player1numMoves,player2numMoves\n"
+            "result,player1cumulativeTime,player2cumulativeTime,player1numMoves,player2numMoves\n"
         )
 
-        # create a detailed log file for the runs
         self.detailedLogFile = open(
             "experiment_results/logs/" + curr_datetime + ".txt", mode="a"
         )
         self.detailedLogFile.write(
-            f"{self.player1Name},{self.player2Name},{num_times}\n"
+            f"{self.player1Name},{self.player2Name},{numTimes}\n"
         )
 
-        for _ in range(num_times):
-            result = self.__playLogged()
+        for _ in range(numTimes):
+            result = self.__playWithLogs()
 
             if result == 1:
                 player1wins += 1
