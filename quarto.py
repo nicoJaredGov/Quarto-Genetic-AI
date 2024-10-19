@@ -9,19 +9,12 @@ class QuartoGame:
         self,
         agent1: qagents.GenericQuartoAgent,
         agent2: qagents.GenericQuartoAgent,
-        player1Name=None,
-        player2Name=None,
+        player1Name="Player 1",
+        player2Name="Player 2",
         gui_mode=False,
         bin_mode=False,
+        log_stats=False,
     ):
-        """
-        agent1:
-            Agent initialized for player 1.
-        agent2:
-            Agent initialized for player 2.
-        gui_mode:
-            Show graphical board if true.
-        """
 
         # additional configuration
         self.checkAgentsValid(agent1, agent2)
@@ -34,12 +27,8 @@ class QuartoGame:
         # game state
         self.moveHistory = list()
         self.resetGame()
-
-        # logging metrics
-        self.agent1_cumulative_time = 0
-        self.agent2_cumulative_time = 0
-        self.numMoves1 = 0
-        self.numMoves2 = 0
+        if log_stats:
+            self.resetStats()
 
     def checkAgentsValid(self, agent1, agent2):
         assert agent1 is not None and issubclass(
@@ -56,6 +45,7 @@ class QuartoGame:
         self.availablePositions = set(range(16))
         self.moveHistory.clear()
 
+    def resetStats(self):
         self.agent1_cumulative_time = 0
         self.agent2_cumulative_time = 0
         self.numMoves1 = 0
@@ -65,15 +55,8 @@ class QuartoGame:
         return qutil.encodeBoard(self.board, self.currentPiece)
 
     def setPlayerNames(self, name1, name2):
-        if name1 is None:
-            self.player1Name = self.player1.name
-        else:
-            self.player1Name = name1
-
-        if name2 is None:
-            self.player2Name = self.player2.name
-        else:
-            self.player2Name = name2
+        self.player1Name = self.player1.name if self.player1.name is not None else name1
+        self.player2Name = self.player2.name if self.player2.name is not None else name2
 
     def showPlayerName(self, turn):
         # turn
