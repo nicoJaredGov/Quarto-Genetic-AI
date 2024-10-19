@@ -265,8 +265,6 @@ class QuartoGame:
             return 0
 
     def __playWithLogs(self, randomizeFirstMove=True):
-        self.log_stats = True
-
         isPlayerOneTurn = True
         if self.gui_mode:
             self.__showPlayerName(isPlayerOneTurn)
@@ -324,6 +322,9 @@ class QuartoGame:
             return 0
 
     def playMultipleGames(self, numTimes):
+        self.log_stats = True
+        self.resetStats()
+
         player1wins = 0
         player2wins = 0
         draws = 0
@@ -359,6 +360,7 @@ class QuartoGame:
                 f"{result},{round(self.agent1_cumulative_time,4)},{round(self.agent2_cumulative_time,4)},{self.numMoves1},{self.numMoves2}\n"
             )
             self.resetGame()
+            self.resetStats()
 
         logFile.close()
         self.detailedLogFile.close()
