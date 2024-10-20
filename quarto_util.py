@@ -2,21 +2,20 @@ import numpy as np
 import pandas as pd
 
 
+def convertIntMoveToStr(move: int):
+    if move <= 9:
+        return "0" + str(move)
+    else:
+        return str(move)
+
+
 def encodeBoard(boardArray, currentPiece):
     encoding = ""
     for i in range(4):
         for j in range(4):
-            num = boardArray[i][j]
-            if num <= 9:
-                encoding += "0" + str(num)
-            else:
-                encoding += str(num)
+            encoding += convertIntMoveToStr(boardArray[i][j])
 
-    if currentPiece <= 9:
-        encoding += "0" + str(currentPiece)
-    else:
-        encoding += str(currentPiece)
-
+    encoding += convertIntMoveToStr(currentPiece)
     return encoding
 
 
@@ -27,6 +26,15 @@ def decodeBoard(encoding):
     current_piece = int(encoding[-2:])
 
     return board_array, current_piece
+
+
+def getEncodingAfterMove(currentEncoding: str, nextPosition: int, nextPiece: int):
+    return (
+        currentEncoding[: 2 * nextPosition]
+        + currentEncoding[-2:]
+        + currentEncoding[2 * nextPosition + 2 : -2]
+        + convertIntMoveToStr(nextPiece)
+    )
 
 
 def get2dCoords(ind):

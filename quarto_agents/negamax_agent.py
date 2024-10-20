@@ -4,7 +4,9 @@ import itertools
 import pandas as pd
 import quarto_util as qutil
 
-# NegaMax with Alpha-Beta pruning
+
+# NegaMax
+# Depth-limited search, move ordering, Alpha-Beta pruning, transposition table
 class NegamaxAgent(GenericQuartoAgent):
     def __init__(self, depth, transposition=None, searchWindow=256) -> None:
         super().__init__()
@@ -12,11 +14,8 @@ class NegamaxAgent(GenericQuartoAgent):
         self.depth = depth
         self.searchWindow = searchWindow
 
-        self.hit = 0
-        self.total = 0
-        self.tableFileName = transposition
         if transposition is not None:
-            self.table = pd.read_pickle(f"tables/{transposition}.pkl")
+            self.initTransposition(transposition)
 
     # Only used in debugging
     def makeFirstMove(self, quartoGameState, gui_mode=False):
@@ -24,14 +23,12 @@ class NegamaxAgent(GenericQuartoAgent):
         return nextPiece
 
     def makeMove(self, quartoGameState, gui_mode=False):
-        maxScore, (position, nextPiece) = self.alphaBeta(
-            quartoGameState, self.depth, -1000, 1000
-        )
+        maxScore, (position, nextPiece) = self.alphaBeta(quartoGameState, self.depth, -1000, 1000)
         if gui_mode:
             print(
-                f"Negamax agent placed piece at cell {position} and nextPiece is {nextPiece}"
+                f"Negamax agent placed piece at cell {position} and nextPiece is {nextPiece}\n",
+                f"maxEval:  {maxScore}",
             )
-            print("maxEval: ", maxScore)
         return position, nextPiece
 
     def alphaBeta(self, quartoGameState, depth, alpha, beta):
@@ -42,6 +39,7 @@ class NegamaxAgent(GenericQuartoAgent):
             return -np.inf, (16, 16)
         if depth == 0 or len(availablePositions) == 0:
             return self.evaluation(encoding), (16, 16)
+
         # check transposition table
         if self.tableFileName is not None:
             if encoding in self.table.encoding.values:
@@ -69,25 +67,15 @@ class NegamaxAgent(GenericQuartoAgent):
             move = (move[1], move[0])
 
             # simulate move
-            tempCurrentPiece = move[1]
-            if tempCurrentPiece <= 9:
-                tempCurrentPiece = "0" + str(tempCurrentPiece)
-            else:
-                tempCurrentPiece = str(tempCurrentPiece)
-            tempEncoding = (
-                encoding[: 2 * move[0]]
-                + encoding[-2:]
-                + encoding[2 * move[0] + 2 : -2]
-                + tempCurrentPiece
-            )
+            nextEncoding = qutil.getEncodingAfterMove(encoding, move[0], move[1])
             availablePositions.remove(move[0])
             availableNextPieces.remove(move[1])
-            nextGameState = (tempEncoding, availableNextPieces, availablePositions)
+            nextGameState = (nextEncoding, availableNextPieces, availablePositions)
 
             # call for next turn
-            cur = -self.alphaBeta(nextGameState, depth - 1, -beta, -alpha)[0]
-            if cur >= maxScore:
-                maxScore = cur
+            curr = -self.alphaBeta(nextGameState, depth - 1, -beta, -alpha)[0]
+            if curr >= maxScore:
+                maxScore = curr
                 bestMove = move
             alpha = max(alpha, maxScore)
 
@@ -95,7 +83,6 @@ class NegamaxAgent(GenericQuartoAgent):
             availablePositions.add(move[0])
             availableNextPieces.add(move[1])
 
-            # print(f"score: {cur}  a: {alpha}  b: {beta}")
             if alpha > beta:
                 if self.tableFileName is not None and depth == self.depth:
                     self.updateTable([encoding, maxScore, bestMove[0], bestMove[1]])
@@ -109,9 +96,7 @@ class NegamaxAgent(GenericQuartoAgent):
 
     # Counts how many lines of three pieces with an identical property
     def evaluation(self, encoding):
-        board = [
-            int(encoding[i] + encoding[i + 1]) for i in range(0, len(encoding) - 2, 2)
-        ]
+        board = [int(encoding[i] + encoding[i + 1]) for i in range(0, len(encoding) - 2, 2)]
         tempLine = None
         numLines = 0
 
@@ -147,6 +132,12 @@ class NegamaxAgent(GenericQuartoAgent):
         # no winning line found
         return numLines
 
+    def initTransposition(self, transposition):
+        self.hit = 0
+        self.total = 0
+        self.tableFileName = transposition
+        self.table = pd.read_pickle(f"tables/{transposition}.pkl")
+
     def updateTable(self, record):
         if record[1] == np.inf:
             record[1] = 10
@@ -170,13 +161,9 @@ class NegamaxAgent(GenericQuartoAgent):
 
     def displayTranspositionMetrics(self):
         if self.tableFileName is None:
-            print(
-                "No transposition table was loaded. Cannot display any transposition metrics."
-            )
+            print("No transposition table was loaded. Cannot display any transposition metrics.")
         else:
-            print("\nnum hits: ", self.hit, "")
-            print("num total: ", self.total, "")
+            print("\nnum hits: ", self.hit, "\nnum total: ", self.total, "")
             if self.total != 0:
                 print(f"hit rate: {round((self.hit/self.total)*100,2)} %\n")
-            print(self.table.info())
-            print("\n")
+            print(self.table.info(), "\n")

@@ -6,6 +6,7 @@ from copy import copy
 from random import sample
 from math import factorial
 
+
 class GeneticMinmaxAgent(GenericQuartoAgent):
     def __init__(
         self,
@@ -17,9 +18,7 @@ class GeneticMinmaxAgent(GenericQuartoAgent):
         maxPopulationSize=10,
     ) -> None:
         super().__init__()
-        super().setName(
-            f"Genetic-{searchDepth}-{maxGenerations}-{initialPopulationSize}"
-        )
+        super().setName(f"Genetic-{searchDepth}-{maxGenerations}-{initialPopulationSize}")
 
         # hyperparameters
         self.searchDepth = searchDepth
@@ -39,9 +38,7 @@ class GeneticMinmaxAgent(GenericQuartoAgent):
     def makeMove(self, quartoGameState, gui_mode=False):
         (position, nextPiece), eval = self.generateSolution(quartoGameState)
         if gui_mode:
-            print(
-                f"Genetic agent placed piece at cell {position} and nextPiece is {nextPiece}"
-            )
+            print(f"Genetic agent placed piece at cell {position} and nextPiece is {nextPiece}")
             print("maxEval: ", eval)
         return position, nextPiece
 
@@ -55,9 +52,7 @@ class GeneticMinmaxAgent(GenericQuartoAgent):
 
     # Counts how many lines of three pieces with an identical property
     def lineEvaluation(self, encoding, turn: bool):
-        board = [
-            int(encoding[i] + encoding[i + 1]) for i in range(0, len(encoding) - 2, 2)
-        ]
+        board = [int(encoding[i] + encoding[i + 1]) for i in range(0, len(encoding) - 2, 2)]
         tempLine = None
         numLines = 0
 
@@ -98,22 +93,12 @@ class GeneticMinmaxAgent(GenericQuartoAgent):
     # Each move consists of 4 consecutive characters in the chromosome - 2 for place and 2 for next piece
     # movePath is defined as a list of tuples which represent moves
     def encodeChromosome(self, movePath):
-        encoding = ""
-
-        for move in movePath:
-            movePos = move[0]
-            movePiece = move[1]
-
-            if movePos <= 9:
-                encoding += "0" + str(movePos)
-            else:
-                encoding += str(movePos)
-
-            if movePiece <= 9:
-                encoding += "0" + str(movePiece)
-            else:
-                encoding += str(movePiece)
-
+        encoding = "".join(
+            [
+                qutil.convertIntMoveToStr(move[0]) + qutil.convertIntMoveToStr(move[1])
+                for move in movePath
+            ]
+        )
         return encoding
 
     def decodeChromosome(self, chromosome):
@@ -124,7 +109,6 @@ class GeneticMinmaxAgent(GenericQuartoAgent):
             )
             for i in range(0, len(chromosome) - 3, 4)
         ]
-
         return movePath
 
     def createChromosome(self, quartoGameState):
@@ -145,17 +129,8 @@ class GeneticMinmaxAgent(GenericQuartoAgent):
 
         newChromosome = ""
         for i in range(chromosomeLength):
-            randomPos = randomPositions[i]
-            randomPiece = randomPieces[i]
-            if randomPos <= 9:
-                newChromosome += "0" + str(randomPos)
-            else:
-                newChromosome += str(randomPos)
-
-            if randomPiece <= 9:
-                newChromosome += "0" + str(randomPiece)
-            else:
-                newChromosome += str(randomPiece)
+            newChromosome += qutil.convertIntMoveToStr(randomPositions[i])
+            newChromosome += qutil.convertIntMoveToStr(randomPieces[i])
 
         return newChromosome, self.evaluate(newChromosome, quartoGameState)
 
@@ -187,12 +162,7 @@ class GeneticMinmaxAgent(GenericQuartoAgent):
         else:  # move nextPiece
             mutation = sample(quartoGameState[1], 1)[0]
 
-        move = ""
-        if mutation <= 9:
-            move += "0" + str(mutation)
-        else:
-            move += str(mutation)
-
+        move = qutil.convertIntMoveToStr(mutation)
         mutatedChromosome = (
             chromosome[: 2 * mutationPoint] + move + chromosome[2 * mutationPoint + 2 :]
         )
@@ -201,12 +171,12 @@ class GeneticMinmaxAgent(GenericQuartoAgent):
 
     def isValidChromosome(self, chromosome, quartoGameState):
         # check if chromosome is valid
-        positions = [
-            int(chromosome[i : i + 2]) for i in range(0, len(chromosome), 4)
-        ] + list(set(range(16)) - quartoGameState[2])
-        nextPieces = [
-            int(chromosome[i : i + 2]) for i in range(2, len(chromosome), 4)
-        ] + list(set(range(16)) - quartoGameState[1])
+        positions = [int(chromosome[i : i + 2]) for i in range(0, len(chromosome), 4)] + list(
+            set(range(16)) - quartoGameState[2]
+        )
+        nextPieces = [int(chromosome[i : i + 2]) for i in range(2, len(chromosome), 4)] + list(
+            set(range(16)) - quartoGameState[1]
+        )
         if len(set(positions)) < len(positions):
             return False
         if len(set(nextPieces)) < len(nextPieces):
@@ -232,15 +202,9 @@ class GeneticMinmaxAgent(GenericQuartoAgent):
 
         # update board encoding and temporary piece
         for move in movePath:
-            if tempCurrentPiece <= 9:
-                tempCurrentPiece = "0" + str(tempCurrentPiece)
-            else:
-                tempCurrentPiece = str(tempCurrentPiece)
-
+            tempCurrentPiece = qutil.convertIntMoveToStr(tempCurrentPiece)
             boardEncoding = (
-                boardEncoding[: 2 * move[0]]
-                + tempCurrentPiece
-                + boardEncoding[2 * move[0] + 2 :]
+                boardEncoding[: 2 * move[0]] + tempCurrentPiece + boardEncoding[2 * move[0] + 2 :]
             )
             tempCurrentPiece = move[1]
 
@@ -302,9 +266,7 @@ class GeneticMinmaxAgent(GenericQuartoAgent):
             # perform crossover and mutation
             parents = self.fitness.keys()
 
-            for _ in range(
-                maxPopulationSize - np.max([len(parents), initialPopulationSize])
-            ):
+            for _ in range(maxPopulationSize - np.max([len(parents), initialPopulationSize])):
                 # random parent selection
                 if len(parents) < 2:
                     break
@@ -344,14 +306,10 @@ class GeneticMinmaxAgent(GenericQuartoAgent):
             self.fitness.clear()
             leafEvaluations = sorted(self.reservationTree.uniqueValues)[::-1]
             for i in range(len(leafEvaluations)):
-                self.computeFitness(
-                    self.reservationTree.rootNode, leafEvaluations[i], i
-                )
+                self.computeFitness(self.reservationTree.rootNode, leafEvaluations[i], i)
 
             # set next generation's initial population as the top N chromosomes of this generation
-            bestChromosome = max(
-                self.fitness, key=lambda chromosome: self.fitness[chromosome]
-            )
+            bestChromosome = max(self.fitness, key=lambda chromosome: self.fitness[chromosome])
             finalEvaluation = self.fitness[bestChromosome]
 
         bestMove = (
@@ -425,9 +383,7 @@ class ReservationTree:
                 self.minmax(current)
                 self.leafNodes[encoding] = current
             else:
-                current = Node(
-                    encoding[0 : lastIndex + 4 * (m + 1)], value=-10, parent=current
-                )
+                current = Node(encoding[0 : lastIndex + 4 * (m + 1)], value=-10, parent=current)
 
     def computeFitness(self, encoding):
         currNode = self.leafNodes[encoding]
