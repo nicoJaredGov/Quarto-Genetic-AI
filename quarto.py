@@ -211,7 +211,7 @@ class QuartoGame:
             return True
 
     def pickRandomAvailablePiece(self):
-        return np.random.choice(list(self.availablePieces))
+        return int(np.random.choice(list(self.availablePieces)))
 
     def play(self, randomizeFirstMove=True):
         isPlayerOneTurn = True
