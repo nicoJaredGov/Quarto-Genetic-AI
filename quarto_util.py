@@ -29,6 +29,20 @@ def decodeBoard(encoding):
     return board_array, current_piece
 
 
+def getEncodingAfterMove(currentEncoding: str, nextPosition: int, nextPiece: int):
+    tempCurrentPiece = nextPiece
+    if tempCurrentPiece <= 9:
+        tempCurrentPiece = "0" + str(tempCurrentPiece)
+    else:
+        tempCurrentPiece = str(tempCurrentPiece)
+
+    return (
+        currentEncoding[: 2 * nextPosition]
+        + currentEncoding[-2:]
+        + currentEncoding[2 * nextPosition + 2 : -2]
+        + tempCurrentPiece
+    )
+
 def get2dCoords(ind):
     assert ind >= 0 and ind < 16, "Invalid linear index. Should be from 0 - 15 inclusive."
     row = ind // 4
